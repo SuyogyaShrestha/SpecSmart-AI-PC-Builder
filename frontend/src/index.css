@@ -1,0 +1,91 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Design Tokens ── */
+@layer base {
+  :root {
+    /* Light mode surfaces */
+    --bg:          #f9fafb;
+    --surface:     #ffffff;
+    --surface-2:   #f3f4f6;
+    --border:      #e5e7eb;
+    --border-2:    #d1d5db;
+
+    /* Light mode text */
+    --text:        #111827;
+    --text-muted:  #6b7280;
+    --text-subtle: #9ca3af;
+
+    /* Semantic */
+    --brand:       #4f46e5;
+    --brand-hover: #4338ca;
+
+    /* Scrollbar */
+    scrollbar-color: #d1d5db transparent;
+  }
+
+  .dark {
+    /* Dark mode surfaces */
+    --bg:          #0f1117;
+    --surface:     #1a1d27;
+    --surface-2:   #21242f;
+    --border:      #2d3148;
+    --border-2:    #383c55;
+
+    /* Dark mode text */
+    --text:        #f1f5f9;
+    --text-muted:  #8892a4;
+    --text-subtle: #555e75;
+
+    /* Semantic */
+    --brand:       #6366f1;
+    --brand-hover: #818cf8;
+
+    scrollbar-color: #2d3148 transparent;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Smooth theme transitions */
+  body,
+  body * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-2);
+    border-radius: 3px;
+  }
+}
+
+/* ── Utility: token-based helpers ── */
+@layer utilities {
+  .bg-app     { background-color: var(--bg); }
+  .bg-surface { background-color: var(--surface); }
+  .bg-surface-2 { background-color: var(--surface-2); }
+  .border-app { border-color: var(--border); }
+  .text-app   { color: var(--text); }
+  .text-muted { color: var(--text-muted); }
+  .text-subtle { color: var(--text-subtle); }
+}
