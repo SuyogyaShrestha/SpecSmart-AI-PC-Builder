@@ -80,6 +80,28 @@ def run_all_scrapers(dry_run: bool = False) -> list[dict]:
     return [{"status": "ok", "refreshed": success}]
 
 
+def run_single_part_scrape(part_id: int, dry_run: bool = False) -> list[dict]:
+    """
+    Admin on-demand entrypoint: Refreshes pricing for a single component ID.
+    Intended to be run synchronously from the UI.
+    """
+    from parts.models import VendorListing
+    listings = VendorListing.objects.filter(part_id=part_id, is_active=True).exclude(product_url="")
+    logger.info(f"Starting single refresh for part {part_id} ({listings.count()} validated vendor listings)...")
+    success: int = 0
+    for lis in listings:
+        try:
+            # Note: scrape_single_listing handles the actual URL fetch, parsing, and database save.
+            # We don't implement dry_run directly here because targeted scraper overrides DB.
+            scrape_single_listing(lis)
+            success += 1
+        except Exception as e:
+            logger.error(f"Failed single refresh for '{lis}': {e}")
+    logger.info(f"Single refresh complete. {success}/{listings.count()} successful.")
+    return [{"status": "ok", "refreshed": success}]
+
+
+
 def scrape_single_listing(listing: VendorListing):
     """
     Targeted scrape for a single Product URL. Extracts price and image directly 
@@ -196,8 +218,23 @@ def scrape_single_listing(listing: VendorListing):
                             break
 
                 # Stock check for WooCommerce vendors
-                if soup.select_one(".out-of-stock") or "out of stock" in soup.get_text().lower() or "sold out" in soup.get_text().lower():
-                    in_stock = False
+                # 1. Check for WooCommerce standard classes on the main product container
+                main_product = soup.select_one(".single-product-page, #product, .product.type-product")
+                if main_product:
+                    classes = main_product.get("class", [])
+                    if "outofstock" in classes:
+                        in_stock = False
+                    
+                    # 2. Scope text checks only to the main product's summary area if possible
+                    summary_area = main_product.select_one(".summary, .wd-single-price, .entry-summary")
+                    if summary_area:
+                        text = summary_area.get_text().lower()
+                        if "out of stock" in text or "sold out" in text or summary_area.select_one(".out-of-stock"):
+                            in_stock = False
+                else:
+                    # Generic fallback if no clean product wrapper is found
+                    if soup.select_one(".summary .out-of-stock, .wd-single-price .out-of-stock"):
+                        in_stock = False
 
             # 2. Extract Image
             img_url = ""
@@ -214,7 +251,10 @@ def scrape_single_listing(listing: VendorListing):
                 _record_price(listing, price, in_stock=in_stock)
                 logger.info(f"[SingleScrape] Found exact price {price} for {listing.part.name}")
             else:
-                logger.warning(f"[SingleScrape] Price not found at {listing.product_url}")
+                logger.warning(f"[SingleScrape] Price not found at {listing.product_url}. Forcing out of stock.")
+                # If price is completely removed from the page, it's out of stock.
+                # We retain last_price but mark it out of stock, which triggers global price recalculation.
+                _record_price(listing, listing.last_price, in_stock=False)
 
             if img_url and not listing.part.image_url:
                 listing.part.image_url = img_url

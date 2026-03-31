@@ -11,4 +11,5 @@ urlpatterns = [
     path("validate/", views.validate_build),
     path("compat-check/", views.compat_check),
     path("ai-review/", views.ai_review),
+    path("chat/", views.chat_api, name="chat_api"),
 ]

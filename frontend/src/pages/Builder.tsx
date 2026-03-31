@@ -110,6 +110,29 @@ export default function BuilderPage() {
     const filledCount = rows.filter(r => r.part).length;
     const budgetInvalid = budget < BUDGET_MIN;
 
+    // Client-side instant wattage calculation (PCPartPicker style)
+    // Updates immediately as parts are added — no API round-trip needed
+    const clientEstimatedWatts = React.useMemo(() => {
+        let watts = 0;
+        for (const r of rows) {
+            if (!r.part?.specs) continue;
+            const tdp = Number(String(r.part.specs.tdp ?? '').replace(/[^\d.]/g, '')) || 0;
+            
+            if (tdp > 0) {
+                watts += tdp;
+            } else {
+                // If TDP isn't explicitly defined, add standard PCPartPicker component estimates
+                switch (r.type) {
+                    case 'MOBO': watts += 30; break;
+                    case 'RAM': watts += 10; break; // ~5W per stick
+                    case 'SSD': watts += 10; break;
+                    case 'COOLER': watts += 15; break; // Fans/Pump
+                }
+            }
+        }
+        return Math.round(watts);
+    }, [rows]);
+
     // Real-time validation Engine (ML + Compat)
     // Debounced so it doesn't slam the API on fast clicks
     const runCompatCheck = useCallback(
@@ -423,7 +446,7 @@ export default function BuilderPage() {
                             )}
                         </div>
                         <div className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-3 flex items-center justify-center gap-2 font-medium shrink-0">
-                            <Zap className="h-4 w-4" /> Estimated Wattage: {Math.round(aiData?.estimated_watts || 0)}W
+                            <Zap className="h-4 w-4" /> Estimated Wattage: {clientEstimatedWatts}W
                         </div>
                     </div>
 
@@ -769,7 +792,11 @@ function BuildRowItem({ row, onNavigate, onRemove }: { row: BuildRow; onNavigate
                         <div className="flex items-center justify-end gap-2 group/price cursor-pointer" onClick={() => setIsEditing(true)}>
                             <Pencil className="h-3 w-3 text-[var(--text-subtle)] opacity-0 group-hover/price:opacity-100 transition-opacity" />
                             <span className={custom_price !== undefined ? "text-brand-600 dark:text-brand-400 font-bold" : ""}>
-                                {formatNPR(Number(displayPrice))}
+                                {isOutOfStock && custom_price === undefined ? (
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 mt-0.5 inline-block">Out of Stock</span>
+                                ) : (
+                                    formatNPR(Number(displayPrice))
+                                )}
                             </span>
                         </div>
                     )

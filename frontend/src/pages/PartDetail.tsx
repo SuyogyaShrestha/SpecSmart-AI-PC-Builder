@@ -24,7 +24,7 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
         { key: 'tdp', label: 'TDP', format: v => v ? `${v}W` : '—' },
         { key: 'l3_cache_mb', label: 'L3 Cache', format: v => v ? `${v} MB` : '—' },
         { key: 'architecture', label: 'Architecture' },
-        { key: 'includes_cooler', label: 'Includes Cooler', format: v => v ? 'Yes' : 'No' },
+        { key: 'includes_cooler', label: 'Includes Cooler', format: v => (v === true || v === 'true' || v === 'Yes' || v === 1 || v === '1') ? 'Yes' : 'No' },
         { key: 'has_igpu', label: 'Integrated Graphics', format: v => v ? 'Yes' : 'No' },
     ],
     GPU: [
@@ -105,7 +105,7 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
         { key: 'fans', label: 'Number of Fans' },
         { key: 'socket_support', label: 'Socket Compatibility' },
         { key: 'noise_dba', label: 'Noise Level', format: v => v ? `${v} dB(A)` : '—' },
-        { key: 'rgb', label: 'RGB', format: v => v ? 'Yes' : 'No' },
+        { key: 'rgb', label: 'RGB', format: v => (v === true || v === 'true' || v === 'Yes' || v === 1 || v === '1') ? 'Yes' : 'No' },
         { key: 'color', label: 'Color' },
     ],
 };
@@ -254,13 +254,17 @@ export default function PartDetailPage() {
                                 <p className="text-sm text-[var(--text-muted)] mt-0.5">{part.brand}</p>
                             </div>
                             <div className="text-right shrink-0">
-                                {best_price != null ? (
+                                {best_price != null && best_price > 0 ? (
                                     <>
                                         <p className="text-2xl font-bold text-brand-600 dark:text-brand-400">{formatNPR(best_price)}</p>
                                         <p className="text-xs text-[var(--text-muted)] mt-0.5">Best vendor price</p>
                                     </>
-                                ) : (
+                                ) : part.price > 0 ? (
                                     <p className="text-lg font-bold text-[var(--text)]">{formatNPR(part.price)}</p>
+                                ) : (
+                                    <span className="inline-block mt-1 px-3 py-1 text-sm font-semibold rounded bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                                        Out of Stock
+                                    </span>
                                 )}
                             </div>
                         </div>

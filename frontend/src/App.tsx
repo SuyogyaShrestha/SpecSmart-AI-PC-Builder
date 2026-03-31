@@ -4,6 +4,7 @@ import { PageSpinner } from '@/components/ui/Spinner';
 import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
 import { apiGetMe, setCachedUser, getAccessToken } from '@/store/authStore';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import FloatingChat from '@/components/FloatingChat';
 
 // ── Lazy-loaded pages ──────────────────────────
 // Public
@@ -18,6 +19,7 @@ const BuilderPage = lazy(() => import('@/pages/Builder'));
 const PartPickerPage = lazy(() => import('@/pages/PartPicker'));
 const PartDetailPage = lazy(() => import('@/pages/PartDetail'));
 const PartsIndexPage = lazy(() => import('@/pages/PartsIndex'));
+const AIChatPage = lazy(() => import('@/pages/AIChat'));
 
 // User
 const DashboardPage = lazy(() => import('@/pages/user/Dashboard'));
@@ -50,6 +52,7 @@ export default function App() {
     return (
         <ErrorBoundary>
             <BrowserRouter>
+                <FloatingChat />
                 <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[var(--bg)]"><PageSpinner /></div>}>
                     <Routes>
                         {/* ── Public ── */}
@@ -70,6 +73,7 @@ export default function App() {
                         <Route path="/my-builds" element={<ProtectedRoute><MyBuildsPage /></ProtectedRoute>} />
                         <Route path="/my-builds/:id" element={<ProtectedRoute><BuildDetailPage /></ProtectedRoute>} />
                         <Route path="/compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
+                        <Route path="/chat" element={<ProtectedRoute><AIChatPage /></ProtectedRoute>} />
 
                         {/* ── Admin only ── */}
                         <Route path="/admin" element={<AdminRoute><AdminDashPage /></AdminRoute>} />

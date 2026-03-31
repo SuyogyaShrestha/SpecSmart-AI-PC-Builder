@@ -8,6 +8,7 @@ import type { User as UserType } from '@/types';
 const NAV_LINKS = [
     { to: '/builder', label: 'PC Builder' },
     { to: '/parts', label: 'Parts' },
+    { to: '/chat', label: 'AI Chat' },
 ];
 
 export function Navbar() {

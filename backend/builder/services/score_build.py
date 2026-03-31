@@ -9,7 +9,10 @@ Integrates the knowledge engine for ComponentQuality scoring.
 """
 from __future__ import annotations
 from parts.models import Part
-from .compat import estimate_watts, psu_ok, socket_ok, ram_ok, cooler_ok
+from .compat import (
+    estimate_watts, psu_ok, socket_ok, ram_ok, cooler_ok,
+    cooler_fits_case, gpu_fits_case, mobo_fits_case
+)
 from .knowledge import component_quality_score, get_usecase_requirements
 
 
@@ -59,7 +62,7 @@ def score_existing_build(part_ids: dict, usecase: str = "Gaming") -> dict:
     case = parts.get("CASE")
 
     total_price = sum(p["price"] for p in parts.values())
-    est_watts = estimate_watts(cpu or {}, gpu or {})
+    est_watts = estimate_watts(parts)
 
     # ── Compatibility warnings ──────────────────────────────────────────
     warnings = []
@@ -92,6 +95,30 @@ def score_existing_build(part_ids: dict, usecase: str = "Gaming") -> dict:
 
     if cpu and cooler and not cooler_ok(cpu, cooler):
         warnings.append("Cooler may be insufficient for this CPU (low TDP support).")
+
+    # Missing cooler warning: CPU doesn't include stock cooler and no aftermarket selected
+    if cpu and not cooler:
+        from .compat import _extract_spec
+        inc = _extract_spec(cpu, "includes_cooler")
+        if inc not in (1, True, "1", "true", "True", "Yes", "yes"):
+            warnings.append("This CPU does not include a stock cooler. Please add an aftermarket CPU cooler.")
+
+    # Physical clearance checks
+    if case:
+        if gpu and not gpu_fits_case(gpu, case):
+            from .compat import _extract_spec as _es
+            g_len = _es(gpu, "length_mm")
+            c_max = _es(case, "gpu_max_mm")
+            warnings.append(f"GPU length ({g_len}mm) exceeds case maximum ({c_max}mm).")
+        if cooler and not cooler_fits_case(cooler, case):
+            from .compat import _extract_spec as _es2
+            c_h = _es2(cooler, "height_mm")
+            c_max = _es2(case, "cooler_max_mm")
+            warnings.append(f"Cooler height ({c_h}mm) exceeds case maximum ({c_max}mm).")
+        if mobo and not mobo_fits_case(mobo, case):
+            from .compat import _extract_spec as _es3
+            m_ff = _es3(mobo, "form_factor")
+            warnings.append(f"Motherboard form factor ({m_ff}) is not supported by this case.")
 
     # ── Use-case requirement warnings ───────────────────────────────────
     reqs = get_usecase_requirements(usecase)

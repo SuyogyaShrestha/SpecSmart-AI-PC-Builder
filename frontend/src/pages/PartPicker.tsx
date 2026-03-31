@@ -81,7 +81,7 @@ export default function PartPickerPage() {
     return (
         <Layout>
             <div className="flex items-center gap-3 mb-5">
-                <button onClick={() => navigate('/builder')} className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
+                <button onClick={() => navigate(-1)} className="text-[var(--text-muted)] hover:text-[var(--text)] transition-colors">
                     <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div>

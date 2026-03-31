@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -142,6 +142,9 @@ export default function AdminPartsPage() {
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [deleting, setDeleting] = useState(false);
 
+    const [scrapingPart, setScrapingPart] = useState(false);
+    const [scrapeMsg, setScrapeMsg] = useState('');
+
     async function fetchParts() {
         setLoading(true);
         try {
@@ -203,6 +206,36 @@ export default function AdminPartsPage() {
             setDeleteId(null);
         } catch { setError('Could not delete part.'); }
         finally { setDeleting(false); }
+    }
+
+    async function handleScrapePart() {
+        if (!editing) return;
+        setScrapingPart(true);
+        setScrapeMsg('');
+        try {
+            const res = await fetch(`${API}/api/admin/scraper/run/`, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ part_id: editing.id })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Failed');
+            
+            // Re-fetch the part to get the latest updated price and stock
+            const freshPartRes = await fetch(`${API}/api/admin/parts/${editing.id}/`, { headers: authHeaders() });
+            if (freshPartRes.ok) {
+                const freshPart = await freshPartRes.json();
+                setForm(f => ({ ...f, price: String(freshPart.price), image_url: freshPart.image_url || f.image_url }));
+            }
+            
+            setScrapeMsg(`✅ Successful sync. Refreshed ${data.results?.[0]?.refreshed || 0} vendor(s).`);
+            fetchParts(); // Update table row in background
+            setTimeout(() => setScrapeMsg(''), 5000);
+        } catch (e: any) {
+            setScrapeMsg(`❌ Sync failed: ${e.message}`);
+        } finally {
+            setScrapingPart(false);
+        }
     }
 
     function toggleSort(field: typeof sortField) {
@@ -303,6 +336,18 @@ export default function AdminPartsPage() {
                             <Input label="PCMOD Nepal URL" id="vendor-pcmod" placeholder="https://pcmodnepal.com/..." value={form.vendor_urls?.pcmodnepal || ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, vendor_urls: { ...f.vendor_urls, pcmodnepal: e.target.value } }))} />
                         </div>
                         <p className="text-xs text-[var(--text-muted)] mt-1 mb-4">Adding a URL will automatically fetch the exact price and High-Res image on Save.</p>
+                        
+                        {editing && (
+                            <>
+                                <div className="flex items-center justify-between bg-[var(--surface-2)] p-3 rounded-lg border border-[var(--border)] mb-4">
+                                    <span className="text-sm font-medium text-[var(--text)]">Force Price Sync</span>
+                                    <Button size="sm" variant="secondary" onClick={(e) => { e.preventDefault(); handleScrapePart(); }} loading={scrapingPart}>
+                                        {!scrapingPart && <RefreshCw className="h-4 w-4 mr-2" />} Sync Prices Now
+                                    </Button>
+                                </div>
+                                {scrapeMsg && <Alert variant={scrapeMsg.includes('❌') ? 'error' : 'success'} className="mb-4">{scrapeMsg}</Alert>}
+                            </>
+                        )}
                     </div>
                     
                     <div className="pt-3 border-t border-[var(--border)] mt-4">

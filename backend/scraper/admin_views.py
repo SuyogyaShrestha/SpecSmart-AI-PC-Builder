@@ -49,16 +49,30 @@ def _run_in_background(dry_run: bool = False):
 def scraper_run(request):
     """
     POST /api/admin/scraper/run/
-    Body: { "dry_run": false }
+    Body: { "dry_run": false, "part_id": Optional[int] }
     """
     global _scrape_state
-    if _scrape_state["running"]:
-        return Response({"detail": "A scrape is already running."}, status=409)
-
+    
+    part_id = request.data.get("part_id")
     dry_run = bool(request.data.get("dry_run", False))
+    
+    if part_id is not None:
+        # Synchronous scrape for a single part (usually 1-3 vendors, perfectly fine for an immediate request)
+        from scraper.runner import run_single_part_scrape
+        try:
+            results = run_single_part_scrape(part_id, dry_run=dry_run)
+            return Response({"detail": "Scrape completed for part.", "results": results}, status=200)
+        except Exception as exc:
+            logger.error("Admin-triggered single scrape failed for part %s: %s", part_id, exc, exc_info=True)
+            return Response({"detail": str(exc)}, status=500)
+    
+    # Otherwise, it's a global scrape (background thread)
+    if _scrape_state["running"]:
+        return Response({"detail": "A global scrape is already running."}, status=409)
+
     thread = threading.Thread(target=_run_in_background, args=(dry_run,), daemon=True)
     thread.start()
-    return Response({"detail": "Scrape started.", "dry_run": dry_run}, status=202)
+    return Response({"detail": "Global scrape started.", "dry_run": dry_run}, status=202)
 
 
 @api_view(["GET"])

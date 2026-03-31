@@ -71,10 +71,11 @@ def generate_build(budget: float, preferences: dict = None, forced_ids: dict = N
         parts_by_type["GPU"] = [p for p in parts_by_type["GPU"] if p["brand"].lower() == gpu_brand.lower()]
         
     # Filter out parts that exceed 120% of the entire budget to save tokens.
+    # Also strictly filter out parts with price <= 0 (Out of Stock / Invalid).
     # We send up to 300 parts per category to ensure high-end items are included for high budgets.
     # (Gemini 2.5 Flash easily handles this larger context).
     for k in parts_by_type:
-        valid_parts = [p for p in parts_by_type[k] if float(p.get("price") or 0) <= budget * 1.2]
+        valid_parts = [p for p in parts_by_type[k] if 0 < float(p.get("price") or 0) <= budget * 1.2]
         parts_by_type[k] = sorted(valid_parts, key=lambda x: float(x.get("price") or 0))[:300]
 
     # Gather forced parts
@@ -98,7 +99,7 @@ Output MUST strictly conform to the expected JSON schema.
 {chr(10).join(forced_strings) if forced_strings else "None"}
 - Motherboard "socket" MUST EXACTLY MATCH CPU "socket".
 - Motherboard "ram_type" MUST EXACTLY MATCH RAM "ram_type".
-- PSU watts MUST be higher than estimated system wattage.
+- PSU watts MUST be at least 20% higher than the raw estimated system wattage plus an 80W baseline (e.g. if system is 500W, you MUST pick at least a 700W PSU). Provide extra headroom for high-end builds.
 
 **Available Components Catalog (JSON arrays):**
 {json.dumps(parts_by_type)}
@@ -179,7 +180,7 @@ def _assemble_build_from_ids(res_json: dict, forced_ids: dict):
         "PSU": "PSU"
     }
 
-    cpu_part, gpu_part = None, None
+    part_dict = {}
     for comp_key, name in comp_target_names.items():
         pid = reqs.get(comp_key)
         if pid:
@@ -187,10 +188,9 @@ def _assemble_build_from_ids(res_json: dict, forced_ids: dict):
             if part:
                 build.append({"component": name, "part": part})
                 total_price += float(part.get("price") or 0)
-                if comp_key == "CPU": cpu_part = part
-                if comp_key == "GPU": gpu_part = part
+                part_dict[comp_key] = part
 
-    est_watts = estimate_watts(cpu_part or {}, gpu_part or {})
+    est_watts = estimate_watts(part_dict)
 
     return {
         "build": build,

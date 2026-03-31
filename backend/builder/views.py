@@ -13,6 +13,8 @@ from .services.swap import swap_and_rebuild
 from .services.preferences import parse_preferences_text
 from .services.validate_compat import check_compatibility
 from .services.score_build import score_existing_build
+from .services.chat_llm import generate_chat_response
+from rest_framework.permissions import IsAuthenticated
 
 # ---- Budget rules (tune later) ----
 MIN_BUDGET = 50000.0   # MVP minimum
@@ -284,6 +286,7 @@ def validate_build(request):
             "metrics": result.get("metrics"),
             "within_budget": result.get("within_budget"),
             "over_by": result.get("over_by"),
+            "estimated_watts": result.get("estimated_watts", 0),
         }, status=200)
 
     except Exception as e:
@@ -432,4 +435,37 @@ def ai_review(request):
 
     except Exception as e:
         return JsonResponse({"detail": str(e)}, status=500)
+
+
+# ---- Chat API ----
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def chat_api(request):
+    """
+    Handle chat requests from the frontend.
+    Requires user to be logged in.
+    Accepts:
+    {
+        "history": [{"role": "user", "content": "..."}, {"role": "model", "content": "..."}],
+        "message": "new user message"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        history = data.get("history", [])
+        new_Message = data.get("message", "").strip()
+
+        if not new_Message:
+            return JsonResponse({"error": "Message cannot be empty"}, status=400)
+
+        response_text = generate_chat_response(history, new_Message)
+
+        return JsonResponse({
+            "response": response_text
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
