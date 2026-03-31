@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from users.admin_views import (
-    admin_stats,
+    admin_stats, admin_trigger_ml_retrain,
     admin_users_list, admin_user_detail,
     admin_parts_list, admin_part_detail,
     admin_vendors_list, admin_vendor_detail,
@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/builds/", include("builds.urls")),
     # ── Admin API ─────────────────────────────────────────────────
     path("api/admin/stats/", admin_stats),
+    path("api/admin/ml/retrain/", admin_trigger_ml_retrain),
     path("api/admin/users/", admin_users_list),
     path("api/admin/users/<int:pk>/", admin_user_detail),
     path("api/admin/parts/", admin_parts_list),

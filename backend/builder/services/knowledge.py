@@ -28,37 +28,38 @@ import re
 
 _PSU_TIER_PATTERNS: list[tuple[str, str]] = [
     # Tier A — flagship models
-    (r"corsair\s*(rm\d|rmx|hx|ax)", "A"),
+    (r"corsair\s*(rm\d|rmx|hx|ax|shift|hxi)", "A"),
     (r"seasonic\s*(focus|prime|vertex)", "A"),
-    (r"be\s*quiet.*?(straight\s*power|dark\s*power)", "A"),
-    (r"msi\s*(meg|mpg)\s*a\d+", "A"),
-    (r"asus\s*(rog|thor)", "A"),
+    (r"be\s*quiet.*?(straight\s*power|dark\s*power|pure\s*power\s*12)", "A"),
+    (r"msi\s*(meg|mpg)\s*a\d+g", "A"),
+    (r"asus\s*(rog|thor|strix)", "A"),
     (r"super\s*flower\s*leadex", "A"),
     (r"fractal\s*design\s*ion", "A"),
     (r"evga\s*(supernova\s*g|supernova\s*p|supernova\s*t)", "A"),
+    (r"thermaltake\s*toughpower\s*(gf3|gf1)", "A"),
 
     # Tier B — solid mid-range
-    (r"corsair\s*(cx-?f|cv|cx\d+m)", "B"),
+    (r"corsair\s*(cx-?f|cx\d+m|vengeance)", "B"),
     (r"cooler\s*master\s*mwe\s*(gold|v2)", "B"),
     (r"deepcool\s*(pq|px|pn)", "B"),
-    (r"antec\s*(neoeco|earthwatts|hcg)", "B"),
-    (r"gigabyte\s*(p\d+|aorus|ud)", "B"),
-    (r"thermaltake\s*(toughpower|smart\s*bm)", "B"),
-    (r"msi\s*mag\s*a\d+", "B"),
+    (r"antec\s*(neoeco|earthwatts|hcg|high\s*current)", "B"),
+    (r"gigabyte\s*(p\d+gm|aorus|ud)", "B"),
+    (r"thermaltake\s*(toughpower\s*gx|smart\s*bm2)", "B"),
+    (r"msi\s*mag\s*a\d+b", "B"),
     (r"xpg\s*(core\s*reactor|pylon)", "B"),
-    (r"nzxt\s*(c|e)\d+", "B"),
-    (r"montech\s*century", "B"),
-    (r"silverstone\s*(sx|et|st)", "B"),
+    (r"nzxt\s*(c\d+|e)\d+", "B"),
+    (r"montech\s*(century|titan)", "B"),
+    (r"silverstone\s*(sx|et|st|decathlon)", "B"),
 
     # Tier C — budget but functional
-    (r"corsair\s*cx\d+", "C"),
+    (r"corsair\s*(cx\d+|cv\d+)", "C"),
     (r"cooler\s*master\s*mwe\s*(bronze|white)", "C"),
     (r"evga\s*(supernova\s*b|br|bt|bq)", "C"),
-    (r"thermaltake\s*smart\s*(std|rgb)", "C"),
-    (r"deepcool\s*(da|dn|de)", "C"),
-    (r"antec\s*(vp|bp|atom|csk)", "C"),
+    (r"thermaltake\s*smart\s*(std|rgb|bx1)", "C"),
+    (r"deepcool\s*(da|dn|de|pk)", "C"),
+    (r"antec\s*(vp|bp|atom|csk|cuprum)", "C"),
     (r"gigabyte\s*pw\d+", "C"),
-    (r"montech\s*gamma", "C"),
+    (r"montech\s*(gamma|beta)", "C"),
     (r"silverstone\s*essential", "C"),
 
     # Tier D — avoid (no-name, no certification, etc.)
@@ -283,28 +284,25 @@ def mobo_tier(name: str, brand: str = "", specs: dict | None = None) -> tuple[st
 # CPU–GPU PAIRING / BOTTLENECK DETECTION
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Price-tier buckets (approximate NPR ranges)
-_CPU_PRICE_TIERS = [
-    (0,     20000,  "budget"),
-    (20000, 40000,  "mid"),
-    (40000, 70000,  "high"),
-    (70000, 999999, "ultra"),
+_CPU_SCORE_TIERS = [
+    (0,     12000,  "budget"),
+    (12000, 24000,  "mid"),
+    (24000, 38000,  "high"),
+    (38000, 999999, "ultra"),
 ]
 
-_GPU_PRICE_TIERS = [
-    (0,     25000,  "budget"),
-    (25000, 60000,  "mid"),
-    (60000, 120000, "high"),
-    (120000, 999999, "ultra"),
+_GPU_SCORE_TIERS = [
+    (0,     7000,   "budget"),
+    (7000,  15000,  "mid"),
+    (15000, 25000,  "high"),
+    (25000, 999999, "ultra"),
 ]
 
-
-def _price_tier(price: float, tiers) -> str:
+def _measure_tier(val: float, tiers) -> str:
     for lo, hi, label in tiers:
-        if lo <= price < hi:
+        if lo <= val < hi:
             return label
     return "ultra"
-
 
 # Pairing quality: how well does the CPU tier match the GPU tier?
 _PAIRING_MATRIX = {
@@ -330,15 +328,17 @@ _PAIRING_MATRIX = {
     ("ultra", "ultra"):   95,
 }
 
-
-def cpu_gpu_pairing_score(cpu_price: float, gpu_price: float) -> int:
+def cpu_gpu_pairing_score(cpu_score: float, gpu_score: float) -> int:
     """
-    Score how well-matched a CPU and GPU are based on price tiers.
+    Score how well-matched a CPU and GPU are based on Passmark benchmark tiers.
     Mismatches (e.g., ultra CPU + budget GPU) indicate bottlenecks.
     Returns 0-100.
     """
-    ct = _price_tier(cpu_price, _CPU_PRICE_TIERS)
-    gt = _price_tier(gpu_price, _GPU_PRICE_TIERS)
+    if cpu_score <= 0 or gpu_score <= 0:
+        return 50 # Fallback if missing
+        
+    ct = _measure_tier(cpu_score, _CPU_SCORE_TIERS)
+    gt = _measure_tier(gpu_score, _GPU_SCORE_TIERS)
     return _PAIRING_MATRIX.get((ct, gt), 50)
 
 
@@ -370,6 +370,14 @@ USECASE_REQUIREMENTS = {
         "min_ssd_gb": 1000,
         "min_psu_tier": "B",
         "description": "Maximizes GPU VRAM, needs lots of RAM and quality power delivery.",
+    },
+    "General Use": {
+        "min_ram_gb": 8,
+        "preferred_ram_type": "DDR4",
+        "min_vram_gb": 0,
+        "min_ssd_gb": 256,
+        "min_psu_tier": "C",
+        "description": "Excellent for daily tasks, office work, and web browsing. Prioritizes value CPU performance and fast storage over discrete graphics.",
     },
     "AI/ML": None,  # alias — resolved at runtime
 }
@@ -434,8 +442,8 @@ def component_quality_score(
     pairing_detail = "No discrete GPU"
     if cpu_part and gpu_part:
         pairing_s = cpu_gpu_pairing_score(
-            float(cpu_part.get("price") or 0),
-            float(gpu_part.get("price") or 0),
+            float(cpu_part.get("benchmark_score") or 0),
+            float(gpu_part.get("benchmark_score") or 0),
         )
         if pairing_s >= 80:
             pairing_detail = "Well-matched CPU and GPU"
@@ -500,5 +508,12 @@ def part_quality_score(part: dict) -> int:
     elif ptype == "MOBO":
         _, s = mobo_tier(name, brand, part)
         return s
+    elif ptype in ("CPU", "GPU"):
+        # Use benchmark score if available, otherwise approximate from price
+        bench = part.get("benchmark_score")
+        if bench and float(bench) > 0:
+            return int(float(bench))
+        # Fallback: use price as a rough proxy (higher price = generally better)
+        return int(float(part.get("price", 0)) / 1000)
     else:
-        return 50  # neutral for CPU/GPU/CASE/COOLER
+        return 50  # neutral for CASE/COOLER

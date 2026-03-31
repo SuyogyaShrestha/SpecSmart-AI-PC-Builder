@@ -20,18 +20,9 @@ def _load_part(pid: int) -> dict | None:
     """Load a Part by ID and return a merged dict (base fields + specs)."""
     try:
         p = Part.objects.get(id=int(pid), is_active=True)
+        return p.full_dict()
     except Part.DoesNotExist:
         return None
-    d = {
-        "id": p.id,
-        "type": p.type,
-        "name": p.name,
-        "brand": p.brand,
-        "price": float(p.price),
-        "specs": p.specs or {},
-    }
-    d.update(p.specs or {})
-    return d
 
 
 def score_existing_build(part_ids: dict, usecase: str = "Gaming") -> dict:

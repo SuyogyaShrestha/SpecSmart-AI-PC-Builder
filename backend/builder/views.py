@@ -76,6 +76,7 @@ def generate(request):
     cpu_brand = request.data.get("cpu_brand")
     gpu_brand = request.data.get("gpu_brand")
     preferences_text = request.data.get("preferences_text")
+    method = request.data.get("method", "ml")
 
     budget, err = _parse_budget(budget_raw)
     if err:
@@ -91,9 +92,18 @@ def generate(request):
         "gpu_brand": gpu_brand,
     }
 
-    result = generate_build(budget=budget, preferences=merged_prefs)
-    result = _attach_budget_flags(result, budget)
-    return Response(result)
+    try:
+        if method == "llm":
+            from .services.generator_llm import generate_build
+            result = generate_build(budget=budget, preferences=merged_prefs)
+        else:
+            from .services.generator_ml import generate_build_ml
+            result = generate_build_ml(budget=budget, preferences=merged_prefs)
+            
+        result = _attach_budget_flags(result, budget)
+        return Response(result)
+    except Exception as e:
+        return Response({"detail": str(e)}, status=500)
 
 
 @csrf_exempt

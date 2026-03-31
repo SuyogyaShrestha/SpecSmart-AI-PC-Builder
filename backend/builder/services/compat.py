@@ -70,13 +70,19 @@ def cooler_ok(cpu, cooler):
     cpu_tdp = _safe_float(_extract_spec(cpu, "tdp", 65))
     cooler_tdp = _safe_float(_extract_spec(cooler, "tdp_support", 0))
 
-    # If cooler has no TDP listed, we assume aftermarket is generally fine for average CPUs, 
-    # but we warn if CPU is high TDP (>= 105W).
+    # If cooler has no TDP listed, we estimate based on the type.
     if cooler_tdp == 0:
-        return cpu_tdp < 105
+        c_type = (_extract_spec(cooler, "cooler_type") or "").lower()
+        if "360mm" in c_type or "420mm" in c_type:
+            cooler_tdp = 350
+        elif "280mm" in c_type or "240mm" in c_type:
+            cooler_tdp = 250
+        elif "120mm" in c_type or "140mm" in c_type:
+            cooler_tdp = 150
+        else:
+            cooler_tdp = 150 # Assume standard aftermarket air cooler handles 150W
 
     # A cooler is OK if its heat dissipation capacity is >= the CPU's heat output.
-    # Overkill cooling (cooler_tdp vastly > cpu_tdp) is perfectly fine.
     return cooler_tdp >= cpu_tdp
 
 def cooler_fits_case(cooler, pc_case):

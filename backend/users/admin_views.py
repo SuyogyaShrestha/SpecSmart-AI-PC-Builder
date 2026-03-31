@@ -39,6 +39,22 @@ def admin_stats(request):
     })
 
 
+@api_view(["POST"])
+@permission_classes([IsAdminRole])
+def admin_trigger_ml_retrain(request):
+    """POST /api/admin/ml/retrain/ — spins up a thread to run the management command."""
+    import threading
+    from django.core.management import call_command
+    
+    def _run_retrain():
+        try:
+            call_command("retrain_ml")
+        except Exception as e:
+            print(f"Failed to retrain ML: {e}")
+
+    threading.Thread(target=_run_retrain, daemon=True).start()
+    return Response({"detail": "ML retraining sequence initiated. This will complete silently in the background over the next few minutes."})
+
 # ─── Users ────────────────────────────────────────────────────────────────────
 
 @api_view(["GET"])

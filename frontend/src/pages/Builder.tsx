@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Zap, RefreshCw, ChevronRight, TriangleAlert, X, TrendingUp, BookmarkPlus, CheckCircle, XCircle, ArrowUpRight, AlertTriangle, Pencil } from 'lucide-react';
+import { Zap, RefreshCw, ChevronRight, TriangleAlert, X, TrendingUp, BookmarkPlus, CheckCircle, XCircle, ArrowUpRight, AlertTriangle, Pencil, Bot } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -26,6 +26,7 @@ const USECASE_OPTIONS = [
     { value: 'Gaming', label: '🎮 Gaming' },
     { value: 'Editing', label: '🎬 Video Editing' },
     { value: 'AI/ML', label: '🤖 AI / ML' },
+    { value: 'General Use', label: '💻 General Use' },
 ];
 
 const BRAND_OPTIONS = [
@@ -190,7 +191,10 @@ export default function BuilderPage() {
         setAiReview(null);
     }, [buildSignature]);
 
-    async function handleGenerate() {
+    const [showMethodModal, setShowMethodModal] = useState(false);
+
+    async function handleGenerate(method: 'llm' | 'ml' = 'ml') {
+        setShowMethodModal(false);
         if (budgetInvalid) { setError(`Minimum budget is ${formatNPR(BUDGET_MIN)}.`); return; }
 
         setError('');
@@ -206,6 +210,7 @@ export default function BuilderPage() {
                     cpu_brand: cpuBrand,
                     gpu_brand: gpuBrand,
                     preferences_text: preferencesText,
+                    method,
                 }),
             });
 
@@ -401,7 +406,7 @@ export default function BuilderPage() {
                                 wrapperClassName="w-32"
                             />
                             <div className="flex gap-2 pb-0.5">
-                                <Button onClick={handleGenerate} loading={aiLoading} leftIcon={<Zap className="h-4 w-4" />}>
+                                <Button onClick={() => setShowMethodModal(true)} loading={aiLoading} leftIcon={<Zap className="h-4 w-4" />}>
                                     Generate
                                 </Button>
                                 <Button
@@ -416,7 +421,6 @@ export default function BuilderPage() {
                             </div>
                         </div>
 
-                        {/* Preferences text */}
                         <div className="mt-3">
                             <textarea
                                 rows={2}
@@ -425,6 +429,9 @@ export default function BuilderPage() {
                                 value={preferencesText}
                                 onChange={e => saveBuildState({ preferencesText: e.target.value }, { emit: true })}
                             />
+                            <p className="text-[11px] text-[var(--text-subtle)] mt-1 ml-1 leading-snug">
+                                Note: The custom preferences text box is exclusively supported by the Gemini AI generation method.
+                            </p>
                         </div>
                     </Card>
 
@@ -452,7 +459,7 @@ export default function BuilderPage() {
 
                     {/* Build Rows */}
                     <div className="bg-[var(--surface)] border-x border-b border-[var(--border)] rounded-b-xl overflow-hidden">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-sm table-fixed">
                             <thead>
                                 <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
                                     <th className="text-left px-4 py-2.5 font-medium text-[var(--text-muted)] w-32">Component</th>
@@ -691,6 +698,50 @@ export default function BuilderPage() {
                     </p>
                 </div>
             </Modal>
+            <Modal
+                open={showMethodModal}
+                onClose={() => setShowMethodModal(false)}
+                title="Choose Generation Assistant"
+            >
+                <div className="space-y-4 pt-2">
+                    <p className="text-sm text-[var(--text-muted)]">
+                        Select which artificial intelligence model should assemble your build.
+                    </p>
+                    
+                    <button
+                        onClick={() => handleGenerate('ml')}
+                        className="w-full text-left p-4 rounded-xl border-2 border-[var(--border)] hover:border-brand-500 bg-[var(--surface-2)] transition-colors flex items-start gap-4"
+                    >
+                        <div className="bg-brand-500/10 p-2.5 rounded-lg shrink-0 mt-0.5">
+                            <Zap className="h-6 w-6 text-brand-600 dark:text-brand-400" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-[var(--text)] text-base">Smart ML Algorithm</h4>
+                            <p className="text-sm text-[var(--text-muted)] mt-1">Uses a rigorously trained random forest to identify the highest tier performance-to-price ratio component benchmarks.</p>
+                            <span className="inline-block mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-400">High Reliability</span>
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={() => handleGenerate('llm')}
+                        className="w-full text-left p-4 rounded-xl border-2 border-[var(--border)] hover:border-purple-500 bg-[var(--surface-2)] transition-colors flex items-start gap-4"
+                    >
+                        <div className="bg-purple-500/10 p-2.5 rounded-lg shrink-0 mt-0.5">
+                            <Bot className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-[var(--text)] text-base">Gemini LLM</h4>
+                            <p className="text-sm text-[var(--text-muted)] mt-1">Communicates with Google's foundation AI models to synthesize a build factoring in edge-cases and visual aesthetics.</p>
+                            <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-400">Supports text preferences</span>
+                        </div>
+                    </button>
+                    
+                    <div className="flex justify-end pt-2">
+                        <Button variant="ghost" onClick={() => setShowMethodModal(false)}>Cancel</Button>
+                    </div>
+                </div>
+            </Modal>
+
         </Layout>
     );
 }
@@ -736,7 +787,7 @@ function BuildRowItem({ row, onNavigate, onRemove }: { row: BuildRow; onNavigate
             <td className="px-4 py-3">
                 <Badge variant={PART_TYPE_VARIANT[type] ?? 'default'} size="sm">{type}</Badge>
             </td>
-            <td className="px-4 py-3 min-w-0">
+            <td className="px-4 py-3 min-w-0 overflow-hidden">
                 {part ? (
                     <div className="flex items-center justify-between w-full">
                         <button
