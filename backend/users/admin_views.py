@@ -124,8 +124,12 @@ def _update_part_vendor_urls(part, vendor_urls: dict):
     # Recalculate global minimum in-stock price
     from django.db.models import Min
     lowest_price = part.vendor_listings.filter(in_stock=True).exclude(last_price__isnull=True).aggregate(Min('last_price'))['last_price__min']
-    part.price = lowest_price if lowest_price is not None else 0
-    part.save(update_fields=["price"])
+    
+    # Only override the price if we found a valid lowest_price from vendors.
+    # Otherwise, preserve the current price (useful for dummy parts with manual pricing).
+    if lowest_price is not None:
+        part.price = lowest_price
+        part.save(update_fields=["price"])
 
 
 @api_view(["GET", "POST"])

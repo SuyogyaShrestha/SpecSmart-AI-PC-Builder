@@ -16,7 +16,7 @@ export function Card({ children, className = '', title, titleRight, padding = 'm
             className={`bg-[var(--surface)] border border-[var(--border)] rounded-xl ${paddingClasses[padding]} ${className}`}
         >
             {(title || titleRight) && (
-                <div className="flex items-center justify-between mb-3">
+                <div className={`flex items-center justify-between mb-3 ${padding === 'none' ? 'px-4 pt-4' : ''}`}>
                     {title && <h3 className="text-sm font-semibold text-[var(--text)]">{title}</h3>}
                     {titleRight}
                 </div>

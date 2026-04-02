@@ -19,8 +19,8 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
         { key: 'socket', label: 'Socket' },
         { key: 'cores', label: 'Cores' },
         { key: 'threads', label: 'Threads' },
-        { key: 'base_clock_mhz', label: 'Base Clock', format: v => v ? `${v} MHz` : '—' },
-        { key: 'boost_clock_mhz', label: 'Boost Clock', format: v => v ? `${v} MHz` : '—' },
+        { key: 'base_clock_mhz', label: 'Base Clock', format: v => v ? (Number(v) < 100 ? `${v} GHz` : `${v} MHz`) : '—' },
+        { key: 'boost_clock_mhz', label: 'Boost Clock', format: v => v ? (Number(v) < 100 ? `${v} GHz` : `${v} MHz`) : '—' },
         { key: 'tdp', label: 'TDP', format: v => v ? `${v}W` : '—' },
         { key: 'l3_cache_mb', label: 'L3 Cache', format: v => v ? `${v} MB` : '—' },
         { key: 'architecture', label: 'Architecture' },
@@ -110,6 +110,11 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
     ],
 };
 
+const VENDOR_LOGOS: Record<string, string> = {
+    'Hukut': 'https://hukut.com/_next/image?url=%2Fassets%2Fhukut-logo-dark.png&w=256&q=75',
+    'BigByte': 'https://bigbyte.com.np/wp-content/uploads/2024/05/bigbyte-logo-for-website--1536x550.jpg',
+    'PC Mod Nepal': 'https://pcmodnepal.com/wp-content/uploads/2026/02/cropped-ChatGPT-Image-Feb-7-2026-10_07_52-PM.png',
+};
 function SpecsTable({ type, specs }: { type: string; specs: Record<string, unknown> }) {
     const labels = SPEC_LABELS[type];
     if (!labels) return null;
@@ -317,9 +322,20 @@ export default function PartDetailPage() {
                                 {listings.map((listing: VendorListing) => (
                                     <div key={listing.id} className="flex items-center justify-between p-2.5 rounded-lg border border-[var(--border)] hover:bg-[var(--surface-2)] transition-colors">
                                         <div className="min-w-0">
-                                            <p className="text-sm font-medium text-[var(--text)] truncate">{listing.vendor.name}</p>
+                                            {VENDOR_LOGOS[listing.vendor.name] ? (
+                                                <div className="h-6 flex items-center mb-0.5">
+                                                    <img 
+                                                        src={VENDOR_LOGOS[listing.vendor.name]} 
+                                                        alt={listing.vendor.name} 
+                                                        className="max-h-full max-w-[100px] object-contain opacity-90 transition-opacity hover:opacity-100 dark:brightness-110"
+                                                        onError={(e) => { (e.currentTarget as HTMLImageElement).parentElement!.style.display = 'none'; }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm font-medium text-[var(--text)] truncate">{listing.vendor.name}</p>
+                                            )}
                                             {listing.last_checked_at && (
-                                                <p className="text-xs text-[var(--text-muted)]">
+                                                <p className="text-[10px] text-[var(--text-muted)]">
                                                     Updated {new Date(listing.last_checked_at).toLocaleDateString()}
                                                 </p>
                                             )}

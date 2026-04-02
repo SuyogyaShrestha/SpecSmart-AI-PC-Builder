@@ -42,6 +42,10 @@ def generate_build_ml(budget: float, preferences: dict = None, forced_ids: dict 
     cpu_brand = preferences.get("cpu_brand") or "None"
     gpu_brand = preferences.get("gpu_brand") or "None"
 
+    # Cap budget for General Use — no need for high-end parts for web/office
+    if usecase.lower() == "general use":
+        budget = min(budget, 100000)
+
     # Load ML pipeline
     try:
         bundle = _get_ml_model()

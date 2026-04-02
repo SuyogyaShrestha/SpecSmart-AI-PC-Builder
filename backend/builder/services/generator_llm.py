@@ -57,7 +57,7 @@ def generate_build(budget: float, preferences: dict = None, forced_ids: dict = N
 
     # Load and compress active parts pool
     parts_by_type = {
-        t: [_compress_part(p.full_dict()) for p in Part.objects.filter(type=t, is_active=True)]
+        t: [_compress_part(p.full_dict()) for p in Part.objects.filter(type=t, is_active=True, price__gt=0)]
         for t in ["CPU", "GPU", "MOBO", "RAM", "SSD", "PSU", "COOLER", "CASE"]
     }
     
@@ -86,6 +86,9 @@ def generate_build(budget: float, preferences: dict = None, forced_ids: dict = N
             if comp_part:
                 forced_strings.append(f"MUST USE {comp} with ID {pid} ({comp_part['name']} - NPR {comp_part['price']}).")
 
+    from builder.services.knowledge import get_usecase_description
+    usecase_desc = get_usecase_description(usecase)
+
     prompt = f"""You are an elite PC Builder building systems for the Nepali market.
 You MUST choose exactly one part from each category (except GPU/Cooler/Case which are optional but recommended).
 The total price of parts must not exceed the budget by more than 5-10%, preferably under.
@@ -93,6 +96,7 @@ Output MUST strictly conform to the expected JSON schema.
 
 **Budget constraints:** NPR {budget:,.0f}
 **User Intent / Usecase:** {usecase}
+**Usecase Description / Rules:** {usecase_desc}
 **User Preferences:** {preferences.get('preferences_text', 'None')}
 
 **Hard Requirements:**

@@ -443,6 +443,13 @@ export default function BuilderPage() {
                         </Alert>
                     )}
 
+                    {/* General Use savings message */}
+                    {usecase === 'General Use' && filledCount >= 4 && displayTotal > 0 && budget > 100000 && displayTotal < budget * 0.8 && (
+                        <Alert variant="info">
+                            💡 <strong>Smart Savings:</strong> Because you selected <strong>General Use</strong>, the system intentionally saved you <strong>{formatNPR(budget - displayTotal)}</strong>. Web browsing and office work don't require high-spec components — your build is optimized for value!
+                        </Alert>
+                    )}
+
                     {/* Compatibility & Wattage Banner (PCPartPicker Style) */}
                     <div className="flex flex-col sm:flex-row items-stretch rounded-t-xl overflow-hidden mb-0">
                         <div className={`flex-1 px-4 py-3 flex items-center gap-2 text-white font-medium ${warnings.length === 0 ? 'bg-emerald-600 dark:bg-emerald-600/90' : 'bg-red-600 dark:bg-red-600/90'}`}>

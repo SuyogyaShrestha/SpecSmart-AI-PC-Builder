@@ -517,3 +517,20 @@ def part_quality_score(part: dict) -> int:
         return int(float(part.get("price", 0)) / 1000)
     else:
         return 50  # neutral for CASE/COOLER
+
+
+def get_usecase_description(usecase: str) -> str:
+    """Returns a textual description for the LLM based on the selected usecase."""
+    u = usecase.lower()
+    if u == "general use":
+        return "Web browsing, office work, media consumption. Requires very basic specs. Avoid high-end GPUs, massive budgets, or premium CPUs. Recommend budget-friendly builds heavily prioritizing saving money unless the strict minimum requires more."
+    elif u == "gaming":
+        return "Focus entirely on GPU performance. Ensure CPU is capable of handling the GPU without bottlenecks. Use 100% of budget."
+    elif u == "video editing":
+        return "Focus highly on multi-core CPU performance, lots of RAM, and fast SSDs. GPU is important but CPU is king. Use 100% of budget."
+    elif u == "3d rendering":
+        return "Requires both extreme GPU compute for rendering and solid CPU for handling the software. Use full budget."
+    elif u == "programming":
+        return "Focus on CPU core count, plenty of RAM (32GB+), and fast SSD. A dedicated GPU is optional unless specified. Keep budget reasonable."
+    else:
+        return "Provide a balanced PC build utilizing the allocated budget effectively."

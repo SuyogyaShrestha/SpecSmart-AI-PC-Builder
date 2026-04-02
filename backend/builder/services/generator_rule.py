@@ -27,13 +27,18 @@ def generate_build_rule(budget: float, preferences: dict = None, forced_ids: dic
     preferences = preferences or {}
     forced_ids = forced_ids or {}
     usecase = preferences.get("usecase", "Gaming")
+    
+    # Intentionally restrict the AI and ML models from going overboard for basic basic use-cases.
+    if usecase.lower() == "general use":
+        budget = min(budget, 100000)
+        
     allocations = _allocate_budget(budget, usecase)
 
     reqs = get_usecase_requirements(usecase)
 
     if parts_by_type is None:
         parts_by_type = {t: [] for t in ["CPU", "GPU", "MOBO", "RAM", "SSD", "PSU", "COOLER", "CASE"]}
-        for p in Part.objects.filter(is_active=True).order_by("price"):
+        for p in Part.objects.filter(is_active=True, price__gt=0).order_by("price"):
             parts_by_type[p.type].append(p.full_dict())
 
     # Helper: filter pool
@@ -44,10 +49,10 @@ def generate_build_rule(budget: float, preferences: dict = None, forced_ids: dic
                 if str(p["id"]) == str(forced):
                     return p
             
-        valid = [p for p in parts_by_type[category] if float(p.get("price", 0)) <= max_price and condition(p)]
+        valid = [p for p in parts_by_type[category] if 0 < float(p.get("price", 0)) <= max_price and condition(p)]
         if not valid:
-            # If nothing fits the budget, just get the cheapest one that meets condition
-            fallback = [p for p in parts_by_type[category] if condition(p)]
+            # If nothing fits the budget, just get the cheapest one that meets condition and is > 0
+            fallback = [p for p in parts_by_type[category] if float(p.get("price", 0)) > 0 and condition(p)]
             if fallback:
                 valid = [min(fallback, key=lambda x: float(x.get("price", 0)))]
             else:

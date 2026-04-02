@@ -78,13 +78,17 @@ def get_llm_build_review(
                 f"(NPR {price:,.0f}) [{', '.join(specs_summary[:8])}]"
             )
 
+    from .knowledge import get_usecase_description
+    usecase_desc = get_usecase_description(usecase)
+
     prompt = f"""You are an expert PC builder and hardware reviewer.
 Analyze this PC build and provide a detailed review.
 
 **Use Case:** {usecase}
+**Use Case Context:** {usecase_desc}
 **Budget:** NPR {budget:,.0f}
 **Total Price:** NPR {total_price:,.0f}
-
+    
 **Components:**
 {chr(10).join(parts_description)}
 
