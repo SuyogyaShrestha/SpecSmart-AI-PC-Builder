@@ -50,3 +50,26 @@ def build_detail(request, pk: int):
     # DELETE
     build.delete()
     return Response(status=204)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def compare_builds(request):
+    """
+    POST /api/builds/compare/
+    Body: { "id_a": 1, "id_b": 2 }
+    Returns an AI-powered comparison briefing.
+    """
+    id_a = request.data.get("id_a")
+    id_b = request.data.get("id_b")
+    if not id_a or not id_b:
+        return Response({"detail": "Both id_a and id_b are required."}, status=400)
+
+    build_a = get_object_or_404(SavedBuild, pk=id_a, user=request.user)
+    build_b = get_object_or_404(SavedBuild, pk=id_b, user=request.user)
+
+    from builder.services.llm_compare import get_llm_build_comparison
+    # Use serializer to get the full dictionary data for the LLM
+    data_a = SavedBuildSerializer(build_a).data
+    data_b = SavedBuildSerializer(build_b).data
+
+    result = get_llm_build_comparison(data_a, data_b)
+    return Response(result)

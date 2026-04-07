@@ -231,13 +231,14 @@ def ssd_tier(specs: dict) -> tuple[str, int]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 _MOBO_CHIPSET_TIER: dict[str, int] = {
-    # AMD AM5
+    # AMD AM5 / Zen 5 (800 Series)
+    "x870e": 95, "x870": 90, "b850": 80, "b840": 65,
+    # AMD AM5 / Zen 4 (600 Series)
     "x670e": 95, "x670": 90, "b650e": 85, "b650": 75, "a620": 55,
-    # AMD AM4
-    "x570": 85, "b550": 70, "a520": 50, "b450": 55, "x470": 65,
-    # Intel LGA1700 / LGA1851
+    # Intel LGA1851 (Arrow Lake)
+    "z890": 95, "b860": 80, "h810": 65,
+    # Intel LGA1700
     "z790": 90, "z690": 85, "b760": 70, "b660": 65, "h770": 70, "h670": 65,
-    "z890": 95, "b860": 75, "h810": 65,
     # Intel older
     "z590": 80, "b560": 65, "h510": 50, "z490": 75, "b460": 60,
 }
@@ -529,8 +530,8 @@ def get_usecase_description(usecase: str) -> str:
     elif u == "video editing":
         return "Focus highly on multi-core CPU performance, lots of RAM, and fast SSDs. GPU is important but CPU is king. Use 100% of budget."
     elif u == "3d rendering":
-        return "Requires both extreme GPU compute for rendering and solid CPU for handling the software. Use full budget."
+        return "Requires both extreme GPU compute for rendering and solid CPU for handling the software. Focus on high VRAM and high core counts. Use full budget."
     elif u == "programming":
-        return "Focus on CPU core count, plenty of RAM (32GB+), and fast SSD. A dedicated GPU is optional unless specified. Keep budget reasonable."
+        return "Focus on CPU core count, plenty of RAM (32GB+), and fast SSD. A dedicated GPU is optional (integrated graphics often sufficient). Prioritize compilation speed and multi-tasking."
     else:
         return "Provide a balanced PC build utilizing the allocated budget effectively."

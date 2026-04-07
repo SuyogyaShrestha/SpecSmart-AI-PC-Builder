@@ -450,7 +450,7 @@ def ai_review(request):
 # ---- Chat API ----
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def chat_api(request):
     """
     Handle chat requests from the frontend.

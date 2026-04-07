@@ -84,6 +84,17 @@ def get_llm_build_review(
     prompt = f"""You are an expert PC builder and hardware reviewer.
 Analyze this PC build and provide a detailed review.
 
+2024-2025 HARDWARE EVOLUTION (MANDATORY KNOWLEDGE):
+- **AMD Ryzen 9000 (Zen 5)**: Native to AM5 socket. Significant IPC increases. Best paired with DDR5-6000 CL30 memory. Fully compatible with B650/X670 (BIOS update) and 800-series (X870/B850) motherboards.
+- **AMD Radeon RX 9000 Series**: The latest high-performance Radeon architecture. Prioritize for high-end builds requiring extreme VRAM and efficiency.
+- **Intel Core Ultra Series 2 (Arrow Lake)**: Uses the new LGA 1851 socket. Focus on massive efficiency gains and high-speed DDR5 support.
+- **NVIDIA RTX 50-Series**: Top-tier performance. Be aware of high power requirements (use Tier A PSUs).
+
+CRITICAL TUNING RULES:
+1. **PSU Tiering**: Always cross-reference the estimated system wattage with the power supply. Only pair high-end RTX/Radeon GPUs with Tier A or Tier B rated PSUs (from Cultists Network).
+2. **Bottleneck Prevention**: The CPU and GPU must be architecturally matched. Do not pair an Intel Core i9 or Ryzen 9 with an entry-level GPU (like an RTX 3050).
+3. **Memory Latency**: For DDR5 RAM, prefer 6000MHz CL30 over slower speeds if budget permits.
+
 **Use Case:** {usecase}
 **Use Case Context:** {usecase_desc}
 **Budget:** NPR {budget:,.0f}

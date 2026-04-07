@@ -6,6 +6,7 @@ import { Badge, PART_TYPE_VARIANT } from '@/components/ui/Badge';
 import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Alert } from '@/components/ui/Alert';
+import { Cpu, HardDrive, PlusCircle, GitCompare, ChevronDown } from 'lucide-react';
 import { getAccessToken } from '@/store/authStore';
 import type { SavedBuild, BuildRow } from '@/types';
 
@@ -28,6 +29,9 @@ export default function ComparePage() {
     const [idA, setIdA] = useState<string>(searchParams.get('a') ?? '');
     const [idB, setIdB] = useState<string>(searchParams.get('b') ?? '');
 
+    const [aiResult, setAiResult] = useState<any>(null);
+    const [loadingAi, setLoadingAi] = useState(false);
+
     useEffect(() => {
         fetch(`${API}/api/builds/`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -40,6 +44,27 @@ export default function ComparePage() {
 
     const buildA = builds.find(b => String(b.id) === idA) ?? null;
     const buildB = builds.find(b => String(b.id) === idB) ?? null;
+
+    useEffect(() => {
+        if (buildA && buildB) {
+            setLoadingAi(true);
+            setAiResult(null);
+            fetch(`${API}/api/builds/compare/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ id_a: buildA.id, id_b: buildB.id }),
+            })
+                .then(r => r.json())
+                .then(setAiResult)
+                .catch(console.error)
+                .finally(() => setLoadingAi(false));
+        } else {
+            setAiResult(null);
+        }
+    }, [idA, idB, builds]);
 
     function getRow(build: SavedBuild | null, component: string): BuildRow | undefined {
         if (!build) return undefined;
@@ -88,6 +113,55 @@ export default function ComparePage() {
                         />
                     </div>
 
+                    {loadingAi && (
+                        <Card className="mb-5 border-brand-200 dark:border-brand-800 bg-brand-50/30 dark:bg-brand-900/10">
+                            <div className="flex items-center gap-3 py-4 px-2">
+                                <Spinner size="sm" />
+                                <p className="text-sm font-medium text-brand-700 dark:text-brand-300">SpecSmart AI is comparing your builds...</p>
+                            </div>
+                        </Card>
+                    )}
+
+                    {aiResult && aiResult.available && (
+                        <Card className="mb-5 border-brand-200 dark:border-brand-800 shadow-sm overflow-hidden">
+                            <div className="bg-brand-50 dark:bg-brand-900/20 px-4 py-2 border-b border-brand-100 dark:border-brand-800 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Cpu className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+                                    <h3 className="text-sm font-bold text-brand-900 dark:text-brand-100 uppercase tracking-tight">AI Expert Briefing</h3>
+                                </div>
+                                <Badge variant="info" className="bg-white dark:bg-brand-950">Winner: {aiResult.winner}</Badge>
+                            </div>
+                            <div className="p-4 grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <p className="text-sm text-[var(--text)] leading-relaxed italic mb-4">"{aiResult.comparison_summary}"</p>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Key Differences</h4>
+                                            <ul className="space-y-1">
+                                                {aiResult.key_differences.map((d: string, i: number) => (
+                                                    <li key={i} className="text-xs text-[var(--text)] flex items-start gap-2">
+                                                        <span className="text-brand-500 mt-1">•</span> {d}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Performance & Value</h4>
+                                        <p className="text-xs text-[var(--text)] mb-2"><span className="font-semibold">Performance:</span> {aiResult.performance_analysis}</p>
+                                        <p className="text-xs text-[var(--text)]"><span className="font-semibold">Value:</span> {aiResult.value_analysis}</p>
+                                    </div>
+                                    <div className="p-3 bg-[var(--surface-2)] rounded-lg border border-[var(--border)]">
+                                        <h4 className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase mb-1">Verdict</h4>
+                                        <p className="text-xs font-medium text-[var(--text)]">{aiResult.verdict}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+                    )}
+
                     {(!buildA || !buildB) ? (
                         <Card>
                             <p className="text-center text-sm text-[var(--text-muted)] py-8">Select two builds above to start comparing.</p>
@@ -97,12 +171,12 @@ export default function ComparePage() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-[var(--surface-2)] border-b border-[var(--border)]">
-                                        <th className="text-left px-4 py-3 font-medium text-[var(--text-muted)] w-32">Component</th>
-                                        <th className="text-left px-4 py-3 font-semibold text-[var(--text)]">
+                                        <th className="text-left px-4 py-3 font-medium text-[var(--text-muted)] w-24 sm:w-32">Component</th>
+                                        <th className="text-left px-4 py-3 font-semibold text-[var(--text)] w-[40%]">
                                             {buildA.name}
                                             <span className="ml-2 text-xs font-normal text-brand-600 dark:text-brand-400 tabular-nums">{formatNPR(buildA.total_price)}</span>
                                         </th>
-                                        <th className="text-left px-4 py-3 font-semibold text-[var(--text)]">
+                                        <th className="text-left px-4 py-3 font-semibold text-[var(--text)] w-[40%]">
                                             {buildB.name}
                                             <span className="ml-2 text-xs font-normal text-brand-600 dark:text-brand-400 tabular-nums">{formatNPR(buildB.total_price)}</span>
                                         </th>

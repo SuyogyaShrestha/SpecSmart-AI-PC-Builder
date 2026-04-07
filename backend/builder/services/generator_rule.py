@@ -136,15 +136,18 @@ def generate_build_rule(budget: float, preferences: dict = None, forced_ids: dic
             current_price = float(current.get("price", 0))
             new_max = current_price + remaining
             
-            # Build the right condition for each component
+            # Build the right condition for each component to maintain strict compatibility
             if comp_key == "CPU":
-                cond = cpu_cond
+                mobo_socket = selected.get("MOBO", {}).get("socket", "")
+                cond = lambda p: cpu_cond(p) and p.get("socket", "") == mobo_socket
             elif comp_key == "GPU":
                 cond = gpu_cond_base
             elif comp_key == "MOBO":
-                cond = mobo_cond
+                cpu_socket = selected.get("CPU", {}).get("socket", "")
+                cond = lambda p: p.get("socket", "") == cpu_socket
             elif comp_key == "RAM":
-                cond = ram_cond
+                mobo_ram_type = selected.get("MOBO", {}).get("ram_type", "")
+                cond = lambda p: p.get("ram_type", "") == mobo_ram_type and float(p.get("capacity_gb", p.get("ram_gb", 0))) >= min_ram
             elif comp_key == "SSD":
                 cond = ssd_cond
             else:

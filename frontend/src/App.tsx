@@ -73,7 +73,7 @@ export default function App() {
                         <Route path="/my-builds" element={<ProtectedRoute><MyBuildsPage /></ProtectedRoute>} />
                         <Route path="/my-builds/:id" element={<ProtectedRoute><BuildDetailPage /></ProtectedRoute>} />
                         <Route path="/compare" element={<ProtectedRoute><ComparePage /></ProtectedRoute>} />
-                        <Route path="/chat" element={<ProtectedRoute><AIChatPage /></ProtectedRoute>} />
+                        <Route path="/chat" element={<AIChatPage />} />
 
                         {/* ── Admin only ── */}
                         <Route path="/admin" element={<AdminRoute><AdminDashPage /></AdminRoute>} />

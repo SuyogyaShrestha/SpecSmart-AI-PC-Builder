@@ -28,15 +28,14 @@ export default function FloatingChat() {
 
     const handleSend = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        const token = getAccessToken();
-        if (!input.trim() || !token) return;
+        if (!input.trim()) return;
         const msg = input;
         setInput('');
-        await sendMessage(msg, token);
+        await sendMessage(msg, getAccessToken());
     };
 
-    // If not logged in, or if currently on the full-page AI chat route, hide the floating chat
-    if (!user || location.pathname === '/chat') {
+    // If currently on the full-page AI chat route, hide the floating chat
+    if (location.pathname === '/chat') {
         return null;
     }
 

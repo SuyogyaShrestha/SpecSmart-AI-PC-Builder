@@ -75,8 +75,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),   # short — refresh happens silently
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),       # 7 days; re-login after a week idle
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),      # stay logged in for a full day
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,                     # every usage rotates the refresh token
     "BLACKLIST_AFTER_ROTATION": True,                  # old refresh token is blacklisted on rotation
     "UPDATE_LAST_LOGIN": True,                         # track last login in DB

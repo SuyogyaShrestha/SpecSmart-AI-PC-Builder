@@ -34,11 +34,25 @@ class Command(BaseCommand):
                 missing_count += 1
                 self.stdout.write(f"Fetching benchmark for {part.type}: {part.name}...")
                 
+                # Skip non-hardware accessories miscategorized as CPU/GPU
+                accessories = ["holder", "riser", "bracket", "cable", "vertical", "mount", "stay", "support"]
+                if any(acc in part.name.lower() for acc in accessories):
+                    self.stdout.write(self.style.WARNING(f"  -> Skipping accessory: {part.name}"))
+                    continue
+
                 b_type = "cpu_mark" if part.type == "CPU" else "gpu_mark"
                 if part.type == "CPU":
-                    prompt = f"What is the average PassMark (CPUMark/CPU Mark) multi-core score for the CPU: {part.name}? Look it up or estimate it highly accurately. Output MUST be an integer."
+                    prompt = (
+                        f"What is the average PassMark (CPUMark) multi-core score for the CPU: {part.name}? "
+                        "If the part is very new (e.g. Ryzen 9000), provide a high-accuracy estimate based on Zen 5 architecture. "
+                        "Output MUST be an integer."
+                    )
                 else:
-                    prompt = f"What is the average PassMark (G3D Mark) score for the GPU: {part.name}? Look it up or estimate it highly accurately. Output MUST be an integer."
+                    prompt = (
+                        f"What is the average PassMark (G3D Mark) score for the GPU: {part.name}? "
+                        "If the part is very new (e.g. RX 9000 / RTX 50), provide a high-accuracy estimate based on its tier and architecture. "
+                        "For example, an RX 9070 should be estimated relative to an RX 7900 XT. Output MUST be an integer."
+                    )
                 
                 try:
                     # Give it a delay to respect rate limits
@@ -63,13 +77,13 @@ class Command(BaseCommand):
                             part=part,
                             benchmark_type=b_type,
                             score=score,
-                            source=source
+                            source=str(source)[:120]  # Truncate to DB limit
                         )
                         self.stdout.write(self.style.SUCCESS(f"  -> Saved {score} from {source}"))
                     else:
                         self.stdout.write(self.style.WARNING(f"  -> Invalid score returned: {score}"))
                         
                 except Exception as e:
-                    self.stdout.write(self.style.ERROR(f"  -> Failed to fetch check Gemini API formatting constraints: {str(e)}"))
+                    self.stdout.write(self.style.ERROR(f"  -> Failed to save benchmark: {str(e)}"))
 
         self.stdout.write(self.style.SUCCESS(f"Finished. Fetched {missing_count} benchmarks."))

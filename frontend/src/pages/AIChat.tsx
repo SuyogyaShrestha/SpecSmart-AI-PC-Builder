@@ -18,11 +18,10 @@ export default function AIChat() {
 
     const handleSend = async (e?: React.FormEvent) => {
         e?.preventDefault();
-        const token = getAccessToken();
-        if (!input.trim() || !token) return;
+        if (!input.trim()) return;
         const msg = input;
         setInput('');
-        await sendMessage(msg, token);
+        await sendMessage(msg, getAccessToken());
     };
 
     return (

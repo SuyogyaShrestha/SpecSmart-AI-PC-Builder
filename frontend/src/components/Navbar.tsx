@@ -80,6 +80,19 @@ export function Navbar() {
                             {link.label}
                         </NavLink>
                     ))}
+                    {user && (
+                        <NavLink
+                            to="/compare"
+                            className={({ isActive }) =>
+                                `px-3 h-8 flex items-center text-sm rounded-md font-medium transition-colors ${isActive
+                                    ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                                    : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-2)]'
+                                }`
+                            }
+                        >
+                            Compare
+                        </NavLink>
+                    )}
                 </nav>
 
                 {/* Right side */}

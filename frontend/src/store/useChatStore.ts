@@ -14,7 +14,7 @@ interface ChatState {
     setIsOpen: (isOpen: boolean) => void;
     toggleChat: () => void;
     clearChat: () => void;
-    sendMessage: (content: string, token: string) => Promise<void>;
+    sendMessage: (content: string, token?: string | null) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -29,7 +29,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         messages: [{ role: 'model', content: "Hello! I am SpecSmart AI, your expert PC building assistant. How can I help you today?" }] 
     }),
 
-    sendMessage: async (content: string, token: string) => {
+    sendMessage: async (content: string, token?: string | null) => {
         if (!content.trim()) return;
 
         // Optimistically add user message
@@ -44,12 +44,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
             // but we'll send it all so the bot remembers the intro personality)
             const history = get().messages.slice(0, -1); // excluding the optimistic user message we just added
 
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await fetch('http://127.0.0.1:8000/api/build/chat/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers,
                 body: JSON.stringify({
                     history: history,
                     message: content
