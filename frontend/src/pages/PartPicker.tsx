@@ -13,9 +13,17 @@ import type { Part, PartType } from '@/types';
 
 const API = 'http://127.0.0.1:8000';
 
+// Format clock speeds: convert raw MHz (>=100) to GHz, pass through GHz values
+const fmtGHz = (v: unknown) => {
+    if (v === null || v === undefined || v === '') return '—';
+    const n = Number(v);
+    if (isNaN(n)) return String(v);
+    return n >= 100 ? `${parseFloat((n / 1000).toFixed(2))}` : `${n}`;
+};
+
 // Which spec columns to show per part type
-const SPEC_COLS: Record<string, { key: string; label: string }[]> = {
-    CPU: [{ key: 'cores', label: 'Cores' }, { key: 'boost_clock_mhz', label: 'Boost (MHz)' }, { key: 'socket', label: 'Socket' }, { key: 'tdp', label: 'TDP (W)' }],
+const SPEC_COLS: Record<string, { key: string; label: string; format?: (v: unknown) => string }[]> = {
+    CPU: [{ key: 'cores', label: 'Cores' }, { key: 'boost_clock_mhz', label: 'Boost (GHz)', format: fmtGHz }, { key: 'socket', label: 'Socket' }, { key: 'tdp', label: 'TDP (W)' }],
     GPU: [{ key: 'vram_gb', label: 'VRAM (GB)' }, { key: 'length_mm', label: 'Length (mm)' }, { key: 'tdp', label: 'TDP (W)' }],
     MOBO: [{ key: 'socket', label: 'Socket' }, { key: 'chipset', label: 'Chipset' }, { key: 'ram_type', label: 'RAM' }],
     RAM: [{ key: 'ram_type', label: 'Type' }, { key: 'speed_mhz', label: 'Speed (MHz)' }, { key: 'cas_latency', label: 'CL' }, { key: 'capacity_gb', label: 'Size (GB)' }],
@@ -173,7 +181,7 @@ export default function PartPickerPage() {
                                     <td className="px-4 py-3 text-[var(--text-muted)]">{part.brand}</td>
                                     {specCols.map(col => (
                                         <td key={col.key} className="px-4 py-3 text-[var(--text-muted)] hidden md:table-cell">
-                                            {String(part.specs?.[col.key] ?? '—')}
+                                            {col.format ? col.format(part.specs?.[col.key]) : String(part.specs?.[col.key] ?? '—')}
                                         </td>
                                     ))}
                                     <td className="px-4 py-3 text-right font-medium tabular-nums text-[var(--text)]">

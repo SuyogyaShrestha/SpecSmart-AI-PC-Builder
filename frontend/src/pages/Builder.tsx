@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useNavigate, Link } from 'react-router-dom';
 import { Zap, RefreshCw, ChevronRight, TriangleAlert, X, TrendingUp, BookmarkPlus, CheckCircle, XCircle, ArrowUpRight, AlertTriangle, Pencil, Bot } from 'lucide-react';
 import { Layout } from '@/components/Layout';
@@ -585,7 +586,7 @@ export default function BuilderPage() {
                                 {/* Left Column: Summary & Bottlenecks & Recs */}
                                 <div className="space-y-6">
                                     <div>
-                                        <p className="text-[15px] text-[var(--text)] leading-relaxed italic border-l-4 border-purple-500 pl-4 py-1">"{aiReview.summary}"</p>
+                                        <p className="text-[15px] text-[var(--text)] leading-relaxed italic border-l-4 border-purple-500 pl-4 py-1">"<span className="rm-inline"><ReactMarkdown>{aiReview.summary}</ReactMarkdown></span>"</p>
                                     </div>
                                     
                                     {aiReview.bottleneck_analysis && (
@@ -594,9 +595,9 @@ export default function BuilderPage() {
                                                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                                                 Bottleneck Analysis
                                             </h4>
-                                            <p className="text-[var(--text-muted)] leading-relaxed bg-amber-50 dark:bg-amber-500/5 p-4 rounded-xl border border-amber-100 dark:border-amber-500/10">
-                                                {aiReview.bottleneck_analysis}
-                                            </p>
+                                            <div className="text-[var(--text-muted)] leading-relaxed bg-amber-50 dark:bg-amber-500/5 p-4 rounded-xl border border-amber-100 dark:border-amber-500/10 rm-full text-sm">
+                                                <ReactMarkdown>{aiReview.bottleneck_analysis}</ReactMarkdown>
+                                            </div>
                                         </div>
                                     )}
 
@@ -609,7 +610,7 @@ export default function BuilderPage() {
                                                 {aiReview.recommendations.map((r: string, i: number) => (
                                                     <li key={i} className="flex items-start gap-3 bg-blue-50 dark:bg-blue-500/5 p-3 rounded-xl border border-blue-100 dark:border-blue-500/10">
                                                         <span className="text-blue-500 mt-0.5">→</span>
-                                                        <span className="text-[var(--text)] leading-relaxed">{r}</span>
+                                                        <span className="text-[var(--text)] leading-relaxed"><span className="rm-inline"><ReactMarkdown>{r}</ReactMarkdown></span></span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -626,7 +627,7 @@ export default function BuilderPage() {
                                                     <CheckCircle className="h-4 w-4" /> Strengths
                                                 </h4>
                                                 <ul className="space-y-2 text-[var(--text-muted)]">
-                                                    {aiReview.strengths.map((s: string, i: number) => <li key={i} className="flex gap-2"><span className="text-green-500 shrink-0">✓</span><span className="leading-snug">{s}</span></li>)}
+                                                    {aiReview.strengths.map((s: string, i: number) => <li key={i} className="flex gap-2"><span className="text-green-500 shrink-0">✓</span><span className="leading-snug"><span className="rm-inline"><ReactMarkdown>{s}</ReactMarkdown></span></span></li>)}
                                                 </ul>
                                             </div>
                                         )}
@@ -636,7 +637,7 @@ export default function BuilderPage() {
                                                     <XCircle className="h-4 w-4" /> Weaknesses
                                                 </h4>
                                                 <ul className="space-y-2 text-[var(--text-muted)]">
-                                                    {aiReview.weaknesses.map((w: string, i: number) => <li key={i} className="flex gap-2"><span className="text-red-500 shrink-0">✗</span><span className="leading-snug">{w}</span></li>)}
+                                                    {aiReview.weaknesses.map((w: string, i: number) => <li key={i} className="flex gap-2"><span className="text-red-500 shrink-0">✗</span><span className="leading-snug"><span className="rm-inline"><ReactMarkdown>{w}</ReactMarkdown></span></span></li>)}
                                                 </ul>
                                             </div>
                                         )}
@@ -650,7 +651,7 @@ export default function BuilderPage() {
                                                         <TrendingUp className="h-4 w-4 text-emerald-500" /> Budget Alternatives
                                                     </h4>
                                                     <ul className="space-y-3 text-[var(--text-muted)]">
-                                                        {aiReview.budget_alternatives.map((b: string, i: number) => <li key={i} className="flex gap-3 border-b border-[var(--border)] last:border-0 pb-3 last:pb-0"><span className="text-emerald-500 shrink-0 mt-0.5">$</span><span className="leading-snug">{b}</span></li>)}
+                                                        {aiReview.budget_alternatives.map((b: string, i: number) => <li key={i} className="flex gap-3 border-b border-[var(--border)] last:border-0 pb-3 last:pb-0"><span className="text-emerald-500 shrink-0 mt-0.5">$</span><span className="leading-snug"><span className="rm-inline"><ReactMarkdown>{b}</ReactMarkdown></span></span></li>)}
                                                     </ul>
                                                 </div>
                                             )}
@@ -660,7 +661,7 @@ export default function BuilderPage() {
                                                         <ArrowUpRight className="h-4 w-4 text-brand-500" /> Future Upgrade Path
                                                     </h4>
                                                     <ul className="space-y-3 text-[var(--text-muted)]">
-                                                        {aiReview.upgrade_paths.map((u: string, i: number) => <li key={i} className="flex gap-3 border-b border-[var(--border)] last:border-0 pb-3 last:pb-0"><span className="text-brand-500 shrink-0 mt-0.5">⇡</span><span className="leading-snug">{u}</span></li>)}
+                                                        {aiReview.upgrade_paths.map((u: string, i: number) => <li key={i} className="flex gap-3 border-b border-[var(--border)] last:border-0 pb-3 last:pb-0"><span className="text-brand-500 shrink-0 mt-0.5">⇡</span><span className="leading-snug"><span className="rm-inline"><ReactMarkdown>{u}</ReactMarkdown></span></span></li>)}
                                                     </ul>
                                                 </div>
                                             )}
@@ -849,9 +850,9 @@ function BuildRowItem({ row, onNavigate, onRemove }: { row: BuildRow; onNavigate
                     ) : (
                         <div className="flex items-center justify-end gap-2 group/price cursor-pointer" onClick={() => setIsEditing(true)}>
                             <Pencil className="h-3 w-3 text-[var(--text-subtle)] opacity-0 group-hover/price:opacity-100 transition-opacity" />
-                            <span className={custom_price !== undefined ? "text-brand-600 dark:text-brand-400 font-bold" : ""}>
+                            <span className={`whitespace-nowrap ${custom_price !== undefined ? "text-brand-600 dark:text-brand-400 font-bold" : ""}`}>
                                 {isOutOfStock && custom_price === undefined ? (
-                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 mt-0.5 inline-block">Out of Stock</span>
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400 mt-0.5 inline-block whitespace-normal">Out of Stock</span>
                                 ) : (
                                     formatNPR(Number(displayPrice))
                                 )}

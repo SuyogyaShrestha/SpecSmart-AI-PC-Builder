@@ -168,10 +168,37 @@ export default function AdminPartsPage() {
     function openEdit(p: Part) {
         setEditing(p);
         const vendors = p.vendor_urls || {};
+        
+        // Normalize legacy specs from old CSV imports
+        const normalizedSpecs = { ...p.specs };
+        if (normalizedSpecs) {
+            const keyMap: Record<string, string> = {
+                'Includes Cooler': 'includes_cooler',
+                'Integrated Graphics': 'has_igpu',
+                'L3 Cache': 'l3_cache_mb',
+                'L3 Cache (MB)': 'l3_cache_mb',
+                'Base Clock': 'base_clock_mhz',
+                'Boost Clock': 'boost_clock_mhz',
+                'TDP': 'tdp'
+            };
+            
+            for (const [legacyKey, newKey] of Object.entries(keyMap)) {
+                if (legacyKey in normalizedSpecs && !(newKey in normalizedSpecs)) {
+                    normalizedSpecs[newKey] = normalizedSpecs[legacyKey];
+                    // Specifically clean up string booleans to actual booleans for the form
+                    if (newKey === 'includes_cooler' || newKey === 'has_igpu') {
+                        const val = String(normalizedSpecs[legacyKey]).toLowerCase().trim();
+                        normalizedSpecs[newKey] = ['yes', 'true', '1', 'y', 't'].includes(val);
+                    }
+                    delete normalizedSpecs[legacyKey];
+                }
+            }
+        }
+
         setForm({ 
             name: p.name, brand: p.brand, type: p.type, price: String(p.price), 
             image_url: p.image_url || ((p.specs?.image_url as string) || ''), 
-            specs: JSON.stringify(p.specs, null, 2), 
+            specs: JSON.stringify(normalizedSpecs, null, 2), 
             is_active: p.is_active ?? true,
             vendor_urls: { hukut: vendors.hukut || '', bigbyte: vendors.bigbyte || '', pcmodnepal: vendors.pcmodnepal || '' }
         });

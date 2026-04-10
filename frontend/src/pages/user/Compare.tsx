@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/Card';
@@ -133,14 +134,14 @@ export default function ComparePage() {
                             </div>
                             <div className="p-4 grid md:grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-sm text-[var(--text)] leading-relaxed italic mb-4">"{aiResult.comparison_summary}"</p>
+                                    <p className="text-sm text-[var(--text)] leading-relaxed italic mb-4">"<span className="rm-inline"><ReactMarkdown>{aiResult.comparison_summary}</ReactMarkdown></span>"</p>
                                     <div className="space-y-3">
                                         <div>
                                             <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Key Differences</h4>
                                             <ul className="space-y-1">
                                                 {aiResult.key_differences.map((d: string, i: number) => (
                                                     <li key={i} className="text-xs text-[var(--text)] flex items-start gap-2">
-                                                        <span className="text-brand-500 mt-1">•</span> {d}
+                                                        <span className="text-brand-500 mt-1">•</span> <span className="rm-inline"><ReactMarkdown>{d}</ReactMarkdown></span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -150,12 +151,12 @@ export default function ComparePage() {
                                 <div className="space-y-4">
                                     <div>
                                         <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase mb-1">Performance & Value</h4>
-                                        <p className="text-xs text-[var(--text)] mb-2"><span className="font-semibold">Performance:</span> {aiResult.performance_analysis}</p>
-                                        <p className="text-xs text-[var(--text)]"><span className="font-semibold">Value:</span> {aiResult.value_analysis}</p>
+                                        <p className="text-xs text-[var(--text)] mb-2"><span className="font-semibold">Performance:</span> <span className="rm-inline"><ReactMarkdown>{aiResult.performance_analysis}</ReactMarkdown></span></p>
+                                        <p className="text-xs text-[var(--text)]"><span className="font-semibold">Value:</span> <span className="rm-inline"><ReactMarkdown>{aiResult.value_analysis}</ReactMarkdown></span></p>
                                     </div>
                                     <div className="p-3 bg-[var(--surface-2)] rounded-lg border border-[var(--border)]">
                                         <h4 className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase mb-1">Verdict</h4>
-                                        <p className="text-xs font-medium text-[var(--text)]">{aiResult.verdict}</p>
+                                        <p className="text-xs font-medium text-[var(--text)]"><span className="rm-inline"><ReactMarkdown>{aiResult.verdict}</ReactMarkdown></span></p>
                                     </div>
                                 </div>
                             </div>

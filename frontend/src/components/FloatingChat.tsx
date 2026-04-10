@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { MessageSquare, X, Send, Cpu, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useChatStore } from '../store/useChatStore';
@@ -75,7 +76,9 @@ export default function FloatingChat() {
                                             : 'bg-[var(--surface-3)] text-[var(--text)] border border-[var(--border)] rounded-bl-sm'
                                     }`}
                                 >
-                                    {m.content}
+                                    <div className={m.role === 'user' ? 'rm-inline text-white' : 'rm-full text-[var(--text)]'}>
+                                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                                    </div>
                                 </div>
                             </div>
                         ))}
