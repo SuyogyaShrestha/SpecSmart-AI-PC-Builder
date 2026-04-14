@@ -77,10 +77,12 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
         { key: 'wattage', label: 'Wattage', format: v => v ? `${v}W` : '—' },
         { key: 'efficiency_rating', label: 'Efficiency Rating' },
         { key: 'modular', label: 'Modularity' },
-        { key: 'psu_tier', label: 'Quality Tier', format: v => {
-            const labels: Record<string, string> = { A: 'Tier A — Premium', B: 'Tier B — Good', C: 'Tier C — Budget', D: 'Tier D — Avoid' };
-            return labels[String(v)] || String(v || '—');
-        }},
+        {
+            key: 'psu_tier', label: 'Quality Tier', format: v => {
+                const labels: Record<string, string> = { A: 'Tier A — Premium', B: 'Tier B — Good', C: 'Tier C — Budget', D: 'Tier D — Avoid' };
+                return labels[String(v)] || String(v || '—');
+            }
+        },
         { key: 'form_factor', label: 'Form Factor' },
         { key: 'atx_version', label: 'ATX Version' },
         { key: 'pcie_gen5_connector', label: '12VHPWR Connector', format: v => v ? 'Yes' : 'No' },
@@ -111,7 +113,7 @@ const SPEC_LABELS: Record<string, { key: string; label: string; format?: (v: unk
 };
 
 const VENDOR_LOGOS: Record<string, string> = {
-    'Hukut': 'https://hukut.com/_next/image?url=%2Fassets%2Fhukut-logo-dark.png&w=256&q=75',
+    'Hukut': 'https://hukut.com/_next/image?url=%2Flogo%2Flogo.png&w=256&q=75',
     'BigByte': 'https://bigbyte.com.np/wp-content/uploads/2024/05/bigbyte-logo-for-website--1536x550.jpg',
     'PC Mod Nepal': 'https://pcmodnepal.com/wp-content/uploads/2026/02/cropped-ChatGPT-Image-Feb-7-2026-10_07_52-PM.png',
 };
@@ -324,10 +326,10 @@ export default function PartDetailPage() {
                                         <div className="min-w-0">
                                             {VENDOR_LOGOS[listing.vendor.name] ? (
                                                 <div className="h-6 flex items-center mb-0.5">
-                                                    <img 
-                                                        src={VENDOR_LOGOS[listing.vendor.name]} 
-                                                        alt={listing.vendor.name} 
-                                                        className="max-h-full max-w-[100px] object-contain opacity-90 transition-opacity hover:opacity-100 dark:brightness-110"
+                                                    <img
+                                                        src={VENDOR_LOGOS[listing.vendor.name]}
+                                                        alt={listing.vendor.name}
+                                                        className={`max-h-full max-w-[100px] object-contain opacity-90 transition-opacity hover:opacity-100 dark:brightness-110 ${listing.vendor.name === 'Hukut' ? 'invert dark:invert-0' : ''}`}
                                                         onError={(e) => { (e.currentTarget as HTMLImageElement).parentElement!.style.display = 'none'; }}
                                                     />
                                                 </div>

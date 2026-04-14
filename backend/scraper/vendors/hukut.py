@@ -72,7 +72,8 @@ class HukutScraper(BaseScraper):
                 all_links = soup.find_all("a", href=True)
                 for link in all_links:
                     text = link.get_text(separator=" ", strip=True)
-                    if "Rs." not in text and "rs." not in text.lower():
+                    # Use regex to find Rs with or without dot, followed by space and numbers
+                    if not re.search(r'(?i)rs\.?\s*\d+', text):
                         continue
 
                     lines = [l.strip() for l in text.split("\n") if l.strip()]
@@ -104,7 +105,8 @@ class HukutScraper(BaseScraper):
                     if not price or len(name) < 5:
                         continue
 
-                    in_stock = "out of stock" not in text.lower() and "out-of-stock" not in text.lower()
+                    text_lower = text.lower()
+                    in_stock = all(phrase not in text_lower for phrase in ["out of stock", "out-of-stock", "unavailable", "notify me"])
 
                     img_el = link.find("img")
                     img_url = ""
