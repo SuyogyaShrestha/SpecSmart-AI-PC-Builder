@@ -55,7 +55,14 @@ def login(request):
 
     user = authenticate(request, username=username, password=password)
     if user is None:
+        try:
+            user_obj = User.objects.get(username=username)
+            if not user_obj.is_active and user_obj.check_password(password):
+                return Response({"detail": "Account is deactivated."}, status=403)
+        except User.DoesNotExist:
+            pass
         return Response({"detail": "Invalid credentials."}, status=401)
+    
     if not user.is_active:
         return Response({"detail": "Account is deactivated."}, status=403)
 

@@ -7,7 +7,7 @@ import { Badge, PART_TYPE_VARIANT } from '@/components/ui/Badge';
 import { Select } from '@/components/ui/Select';
 import { Spinner } from '@/components/ui/Spinner';
 import { Alert } from '@/components/ui/Alert';
-import { Cpu, HardDrive, PlusCircle, GitCompare, ChevronDown } from 'lucide-react';
+import { Cpu, HardDrive, PlusCircle, GitCompare, ChevronDown, Trophy } from 'lucide-react';
 import { getAccessToken } from '@/store/authStore';
 import type { SavedBuild, BuildRow } from '@/types';
 
@@ -231,6 +231,27 @@ export default function ComparePage() {
                                             {Number(buildB.total_price) < Number(buildA.total_price) && <span className="ml-2 text-xs text-green-500">✓ cheaper</span>}
                                         </td>
                                     </tr>
+                                    {aiResult && aiResult.winner && (
+                                        <tr className="bg-brand-50/50 dark:bg-brand-900/10 font-bold">
+                                            <td className="px-4 py-3 text-brand-700 dark:text-brand-300">AI Verdict</td>
+                                            <td className="px-4 py-3">
+                                                {(aiResult.winner.includes('A') || aiResult.winner.toLowerCase() === 'tie') && (
+                                                    <span className="text-amber-500 flex items-center gap-1.5">
+                                                        <Trophy className="h-4 w-4" /> 
+                                                        {aiResult.winner.toLowerCase() === 'tie' ? 'Tie' : 'Superior Build'}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {(aiResult.winner.includes('B') || aiResult.winner.toLowerCase() === 'tie') && (
+                                                    <span className="text-amber-500 flex items-center gap-1.5">
+                                                        <Trophy className="h-4 w-4" /> 
+                                                        {aiResult.winner.toLowerCase() === 'tie' ? 'Tie' : 'Superior Build'}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

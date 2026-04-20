@@ -127,7 +127,9 @@ def scrape_single_listing(listing: VendorListing):
         with BaseScraper(timeout=20.0) as scraper:
             soup = scraper.get(listing.product_url)
             if not soup:
-                logger.error(f"[SingleScrape] Failed to load {listing.product_url}")
+                logger.error(f"[SingleScrape] Failed to load {listing.product_url}. Forcing out of stock due to connection/404 error.")
+                # We retain last_price but mark it out of stock since the page is dead/404.
+                _record_price(listing, listing.last_price, in_stock=False)
                 return
 
             # 1. Extract Price & Stock

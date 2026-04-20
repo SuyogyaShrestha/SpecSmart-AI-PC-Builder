@@ -65,14 +65,20 @@ def admin_users_list(request):
     return Response(AdminUserSerializer(users, many=True).data)
 
 
-@api_view(["PATCH"])
+@api_view(["PATCH", "DELETE"])
 @permission_classes([IsAdminRole])
 def admin_user_detail(request, pk: int):
     """
     PATCH /api/admin/users/<pk>/
+    DELETE /api/admin/users/<pk>/
     Allowed fields: role, is_active
     """
     user = get_object_or_404(User, pk=pk)
+
+    if request.method == "DELETE":
+        user.delete()
+        return Response(status=204)
+
     serializer = AdminUserSerializer(user, data=request.data, partial=True)
     if not serializer.is_valid():
         return Response(serializer.errors, status=400)

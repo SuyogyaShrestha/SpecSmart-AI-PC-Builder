@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Search, ShieldCheck, ShieldOff, User2 } from 'lucide-react';
+import { Search, ShieldCheck, ShieldOff, User2, Trash2, CheckCircle2 } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -26,7 +26,7 @@ export default function AdminUsersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
-    const [confirmUser, setConfirmUser] = useState<{ user: User; action: 'promote' | 'demote' | 'deactivate' | 'activate' } | null>(null);
+    const [confirmUser, setConfirmUser] = useState<{ user: User; action: 'promote' | 'demote' | 'deactivate' | 'activate' | 'delete' } | null>(null);
     const [acting, setActing] = useState(false);
 
     useEffect(() => {
@@ -41,18 +41,27 @@ export default function AdminUsersPage() {
         if (!confirmUser) return;
         setActing(true);
         const { user, action } = confirmUser;
-        const payload =
-            action === 'promote' ? { role: 'admin' } :
-                action === 'demote' ? { role: 'user' } :
-                    action === 'deactivate' ? { is_active: false } :
-                        { is_active: true };
 
         try {
-            const res = await fetch(`${API}/api/admin/users/${user.id}/`, {
-                method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload),
-            });
-            const updated = await res.json();
-            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, ...updated } : u));
+            if (action === 'delete') {
+                await fetch(`${API}/api/admin/users/${user.id}/`, {
+                    method: 'DELETE', headers: authHeaders(),
+                });
+                setUsers(prev => prev.filter(u => u.id !== user.id));
+            } else {
+                const payload =
+                    action === 'promote' ? { role: 'admin' } :
+                        action === 'demote' ? { role: 'user' } :
+                            action === 'deactivate' ? { is_active: false } :
+                                { is_active: true };
+
+                const res = await fetch(`${API}/api/admin/users/${user.id}/`, {
+                    method: 'PATCH', headers: authHeaders(),
+                    body: JSON.stringify(payload),
+                });
+                const updated = await res.json();
+                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, ...updated } : u));
+            }
             setConfirmUser(null);
         } catch { setError('Could not update user.'); }
         finally { setActing(false); }
@@ -68,6 +77,7 @@ export default function AdminUsersPage() {
         demote: 'Demote to User',
         deactivate: 'Deactivate',
         activate: 'Activate',
+        delete: 'Delete User',
     }[confirmUser.action] : '';
 
     return (
@@ -121,7 +131,9 @@ export default function AdminUsersPage() {
                                         <Badge variant={u.role === 'admin' ? 'brand' : 'default'} size="sm">{u.role}</Badge>
                                     </td>
                                     <td className="px-4 py-3 text-center">
-                                        <Badge variant={'success'} size="sm">Active</Badge>
+                                        <Badge variant={u.is_active ? 'success' : 'default'} size="sm">
+                                            {u.is_active ? 'Active' : 'Inactive'}
+                                        </Badge>
                                     </td>
                                     <td className="px-4 py-3 text-[var(--text-muted)]">{formatDate(u.date_joined)}</td>
                                     <td className="px-4 py-3">
@@ -137,9 +149,20 @@ export default function AdminUsersPage() {
                                                     <User2 className="h-3 w-3" /> Demote
                                                 </button>
                                             )}
-                                            <button onClick={() => setConfirmUser({ user: u, action: 'deactivate' })}
-                                                className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 transition-colors">
-                                                <ShieldOff className="h-3 w-3" />
+                                            {u.is_active ? (
+                                                <button onClick={() => setConfirmUser({ user: u, action: 'deactivate' })}
+                                                    className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-500 hover:bg-amber-100 transition-colors" title="Deactivate">
+                                                    <ShieldOff className="h-3 w-3" />
+                                                </button>
+                                            ) : (
+                                                <button onClick={() => setConfirmUser({ user: u, action: 'activate' })}
+                                                    className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-green-50 dark:bg-green-900/20 text-green-500 hover:bg-green-100 transition-colors" title="Activate">
+                                                    <CheckCircle2 className="h-3 w-3" />
+                                                </button>
+                                            )}
+                                            <button onClick={() => setConfirmUser({ user: u, action: 'delete' })}
+                                                className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 transition-colors" title="Delete">
+                                                <Trash2 className="h-3 w-3" />
                                             </button>
                                         </div>
                                     </td>

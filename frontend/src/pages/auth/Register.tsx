@@ -11,19 +11,20 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 export default function RegisterPage() {
     const navigate = useNavigate();
 
-    // Already logged in — redirect away immediately
-    const existingUser = getCachedUser();
-    if (existingUser) {
-        return <Navigate to={existingUser.role === 'admin' ? '/admin' : '/dashboard'} replace />;
-    }
-
     const [form, setForm] = useState({
         first_name: '', last_name: '', username: '', email: '', password: '', password2: '',
     });
     const [showPwd, setShowPwd] = useState(false);
     const [errors, setErrors] = useState<Partial<typeof form>>({});
     const [apiError, setApiError] = useState('');
+    const [apiSuccess, setApiSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Already logged in and not in the middle of a successful registration — redirect away
+    const existingUser = getCachedUser();
+    if (existingUser && !apiSuccess) {
+        return <Navigate to={existingUser.role === 'admin' ? '/admin' : '/dashboard'} replace />;
+    }
 
     function update(field: keyof typeof form) {
         return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +45,7 @@ export default function RegisterPage() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setApiError('');
+        setApiSuccess('');
         const errs = validate();
         if (Object.keys(errs).length > 0) { setErrors(errs); return; }
         setLoading(true);
@@ -52,10 +54,12 @@ export default function RegisterPage() {
             setTokens(tokens);
             setCachedUser(user);
             window.dispatchEvent(new Event('specsmart:auth_updated'));
-            navigate('/dashboard', { replace: true });
+            setApiSuccess('Account created successfully! Redirecting...');
+            setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+            }, 1000);
         } catch (err) {
             setApiError(err instanceof Error ? err.message : 'Registration failed.');
-        } finally {
             setLoading(false);
         }
     }
@@ -76,6 +80,7 @@ export default function RegisterPage() {
 
                 <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
                     {apiError && <Alert variant="error" dismissible className="mb-4">{apiError}</Alert>}
+                    {apiSuccess && <Alert variant="success" className="mb-4">{apiSuccess}</Alert>}
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-3.5" noValidate>
                         <div className="grid grid-cols-2 gap-3">

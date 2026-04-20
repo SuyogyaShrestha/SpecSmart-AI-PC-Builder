@@ -129,7 +129,7 @@ export default function DashboardPage() {
                     {/* Quick Actions */}
                     <div>
                         <h2 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-3">Quick Actions</h2>
-                        <div className="grid sm:grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-3 gap-4">
                             {/* Combined Builder Card */}
                             <button
                                 onClick={() => navigate('/builder')}
@@ -166,6 +166,25 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                                 <ArrowRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-violet-500 transition-all group-hover:translate-x-0.5" />
+                            </button>
+
+                            {/* My Builds Card */}
+                            <button
+                                onClick={() => navigate('/my-builds')}
+                                className="dash-action-card group"
+                            >
+                                <div className="dash-action-icon bg-gradient-to-br from-emerald-500 to-teal-700 text-white">
+                                    <HardDrive className="h-6 w-6" />
+                                </div>
+                                <div className="text-left flex-1">
+                                    <p className="font-semibold text-[var(--text)] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        Saved Builds
+                                    </p>
+                                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                                        View and manage all your builds
+                                    </p>
+                                </div>
+                                <ArrowRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-emerald-500 transition-all group-hover:translate-x-0.5" />
                             </button>
                         </div>
                     </div>
@@ -288,7 +307,7 @@ export default function DashboardPage() {
                             ].map(item => (
                                 <Link
                                     key={item.type}
-                                    to={`/parts/${item.type.toLowerCase()}`}
+                                    to={`/pick/${item.type}`}
                                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--surface-2)] transition-colors group"
                                 >
                                     <div className="text-[var(--text-muted)] group-hover:text-brand-500 transition-colors">{item.icon}</div>
@@ -309,7 +328,7 @@ export default function DashboardPage() {
                             Ask questions about your build compatibility, 
                             get upgrade recommendations, or compare setups instantly.
                         </p>
-                        <Link to="/ai-chat" className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400 mt-3 hover:underline">
+                        <Link to="/chat" className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 dark:text-brand-400 mt-3 hover:underline">
                             Start Chatting <ArrowRight className="h-3 w-3" />
                         </Link>
                     </div>
