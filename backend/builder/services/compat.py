@@ -108,8 +108,40 @@ def mobo_fits_case(mobo, pc_case):
         return True
     m_ff = (_extract_spec(mobo, "form_factor") or "").lower().replace("-", "").replace(" ", "")
     c_support = (_extract_spec(pc_case, "mobo_support") or "").lower().replace("-", "")
-    if not m_ff or not c_support:
+
+    # If case explicitly lists supported form factors, check directly
+    if c_support and m_ff:
+        if m_ff in c_support:
+            return True
+
+    # Fallback: use form-factor size hierarchy.
+    # Larger cases can always fit smaller motherboards.
+    # E-ATX > ATX > mATX (microatx) > ITX (miniitx)
+    _FF_RANK = {"eatx": 4, "eatx": 4, "atx": 3, "matx": 2, "microatx": 2, "itx": 1, "miniitx": 1}
+
+    if not m_ff:
         return True
-    if m_ff in c_support:
-        return True
-    return False
+
+    # Determine the case's form factor from its name or form_factor field
+    c_ff = (_extract_spec(pc_case, "form_factor") or "").lower().replace("-", "").replace(" ", "")
+    if not c_ff:
+        # Try to infer from case name (e.g. "Generic ATX Mid Tower")
+        case_name = (_extract_spec(pc_case, "name") or "").lower()
+        if "eatx" in case_name or "e-atx" in case_name:
+            c_ff = "eatx"
+        elif "matx" in case_name or "micro-atx" in case_name or "micro atx" in case_name or "microatx" in case_name:
+            c_ff = "matx"
+        elif "itx" in case_name or "mini-itx" in case_name or "miniitx" in case_name:
+            c_ff = "itx"
+        elif "atx" in case_name:
+            c_ff = "atx"
+
+    mobo_rank = _FF_RANK.get(m_ff, 0)
+    case_rank = _FF_RANK.get(c_ff, 0)
+
+    # If we can resolve both ranks, a case is compatible if its rank >= mobo rank
+    if mobo_rank > 0 and case_rank > 0:
+        return case_rank >= mobo_rank
+
+    # If we can't determine ranks, assume compatible
+    return True

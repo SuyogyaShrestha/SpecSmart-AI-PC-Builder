@@ -103,6 +103,9 @@ def generate(request):
         result = _attach_budget_flags(result, budget)
         return Response(result)
     except Exception as e:
+        err_str = str(e).lower()
+        if "getaddrinfo" in err_str or "connectionerror" in err_str or "timeout" in err_str or "unreachable" in err_str:
+            return Response({"detail": "Generation failed: Unable to reach the AI service. Please check your internet connection and try again."}, status=503)
         return Response({"detail": str(e)}, status=500)
 
 
